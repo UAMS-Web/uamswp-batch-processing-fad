@@ -58,8 +58,11 @@ if ( class_exists( 'WP_Batch' ) ) {
 				'post_type' => $cpt,
                 'orderby' => 'title',
                 'order' => 'ASC',
-                'posts_per_page' => -1,
+                'posts_per_page' => -1, 
                 'post_status' => 'any',
+                'no_found_rows' => true,
+                'update_post_term_cache' => false,
+                'cache_results'  => false,
                 // 'offset' => 0, // Change this to batch process
                 // 'p' => '3215'
 			);
