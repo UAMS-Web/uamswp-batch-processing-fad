@@ -110,7 +110,10 @@ if ( class_exists( 'WP_Batch' ) ) {
 				// $term_meta = get_option( "taxonomy_$t_id" );
 				$name = $term->name; //Title
 				$slug = $term->slug; //Slug
-				$description = $term->description; //Description
+
+				$content = get_field('treatment_procedure_content', $term);
+				$excerpt = get_field('treatment_procedure_short_desc', $term);
+				// $description = $term->description; //Description
 
 				$new_id = (int)$t_id + $post_id_offset;
 				
@@ -120,7 +123,8 @@ if ( class_exists( 'WP_Batch' ) ) {
 					$new_post = array(
 						'import_id' => $new_id,
 						'post_title' => $name,
-						'post_content' => $description, //Use Taxonomy description for Post Content
+						'post_content' => $content, //Use Taxonomy description for Post Content
+						'post_excerpt' => $excerpt,
 						'post_name' => $slug,
 						'post_status' => 'publish',
 						'post_type' => $post_type,
