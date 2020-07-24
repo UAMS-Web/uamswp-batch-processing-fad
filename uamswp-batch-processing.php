@@ -36,3 +36,5 @@ require_once 'fad/class-treatment-batch.php';
 require_once 'fad/class-providers-batch.php';
 require_once 'fad/class-locations-batch.php';
 require_once 'fad/class-aoes-batch.php';
+require_once 'fad/class-condition-content-batch.php';
+require_once 'fad/class-treatment-content-batch.php';
