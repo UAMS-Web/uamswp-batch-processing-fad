@@ -38,3 +38,5 @@ require_once 'fad/class-locations-batch.php';
 require_once 'fad/class-aoes-batch.php';
 require_once 'fad/class-condition-content-batch.php';
 require_once 'fad/class-treatment-content-batch.php';
+require_once 'fad/class-condition-sync-batch.php';
+require_once 'fad/class-treatment-sync-batch.php';
