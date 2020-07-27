@@ -6,3 +6,6 @@
     	<?php WP_BP_Helper::render('batch-manage', array('id' => $id)); ?>
     </div>
 </div>
+<div class="wrap">
+    <a href="admin.php?page=dg-batches">Back to List</a>
+</div>
