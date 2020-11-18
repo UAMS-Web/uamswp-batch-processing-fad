@@ -40,3 +40,5 @@ require_once 'fad/class-condition-content-batch.php';
 require_once 'fad/class-treatment-content-batch.php';
 require_once 'fad/class-condition-sync-batch.php';
 require_once 'fad/class-treatment-sync-batch.php';
+require_once 'fad/class-providers-region-batch.php';
+require_once 'fad/class-providers-filter-batch.php';
