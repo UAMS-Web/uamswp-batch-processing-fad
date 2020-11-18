@@ -2,9 +2,9 @@
 /*
 Plugin Name: UAMSWP Batch Processing
 Plugin URI: https://github.com/gdarko/wp-batch-processing
-Description: Batch Processing for WordPress. Imagine you have to send custom emails to a lots of users based on some kind of logic. This plugin makes batch tasks easy.
-Version: 1.0.1
-Author: Darko Gjorgjijoski
+Description: Batch Processing for WordPress. Find-a-doc 
+Version: 1.0.2
+Author: Darko Gjorgjijoski & Todd McKee, MEd
 Author URI: https://darkog.com
 License: GPL-2+
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
