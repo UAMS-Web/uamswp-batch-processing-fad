@@ -2,7 +2,7 @@
 /*
 Plugin Name: UAMSWP Batch Processing
 Plugin URI: https://github.com/gdarko/wp-batch-processing
-Description: Batch Processing for WordPress. UAMS Find-a-doc version
+Description: Batch Processing for WordPress. Find-a-doc 
 Version: 1.0.2
 Author: Darko Gjorgjijoski & Todd McKee, MEd
 Author URI: https://darkog.com
@@ -40,8 +40,6 @@ require_once 'fad/class-condition-content-batch.php';
 require_once 'fad/class-treatment-content-batch.php';
 require_once 'fad/class-condition-sync-batch.php';
 require_once 'fad/class-treatment-sync-batch.php';
-require_once 'fad/class-providers-filter-batch.php';
 require_once 'fad/class-providers-region-batch.php';
-require_once 'fad/class-expertise-region-batch.php';
-require_once 'fad/class-condition-region-batch.php';
-require_once 'fad/class-treatment-region-batch.php';
+require_once 'fad/class-providers-filter-batch.php';
+require_once 'fad/class-providers-nrc-cache.php';
