@@ -3,7 +3,7 @@
 Plugin Name: UAMSWP Batch Processing
 Plugin URI: https://github.com/gdarko/wp-batch-processing
 Description: Batch Processing for WordPress. Find-a-doc 
-Version: 1.0.2
+Version: 1.1.0
 Author: Darko Gjorgjijoski & Todd McKee, MEd
 Author URI: https://darkog.com
 License: GPL-2+
