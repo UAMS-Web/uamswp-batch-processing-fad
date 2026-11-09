@@ -32,6 +32,17 @@ class WP_Batch_Processor_Admin {
 	const NONCE = 'wp-batch-processing';
 
 	/**
+	 * The capability required to open the batches page and to run a batch over ajax.
+	 */
+	const CAPABILITY = 'manage_options';
+
+	/**
+	 * The hook suffix of the batches page, as returned by add_menu_page().
+	 * @var string
+	 */
+	private $page_hook = '';
+
+	/**
 	 * Kick-in the class
 	 */
 	protected function init() {
@@ -52,10 +63,20 @@ class WP_Batch_Processor_Admin {
 	/**
 	 * Enqueues admin scripts
 	 *
+	 * @param string $hook_suffix The hook suffix of the admin page being rendered.
+	 *
 	 * @return void
 	 */
-	public function enqueue_scripts() {
+	public function enqueue_scripts( $hook_suffix = '' ) {
 
+		// Only print the runner (and its nonce) on the batches page itself, for a user who can open it.
+		// The $_GET check alone is not enough: any admin screen can carry page=dg-batches in its query string.
+		if ( '' === $this->page_hook || $hook_suffix !== $this->page_hook ) {
+			return;
+		}
+		if ( ! current_user_can( self::CAPABILITY ) ) {
+			return;
+		}
 		if ( ! $this->is_batch_runner_screen( 'view' ) ) {
 			return;
 		}
@@ -86,10 +107,10 @@ class WP_Batch_Processor_Admin {
 	 */
 	public function admin_menu() {
 
-		add_menu_page(
+		$this->page_hook = add_menu_page(
 			__( 'Manage Batches', 'wp-batch-processing' ),
 			__( 'Batches ', 'wp-batch-processing' ),
-			'manage_options', 'dg-batches',
+			self::CAPABILITY, 'dg-batches',
 			array( $this, 'plugin_page' ),
 			'dashicons-grid-view', null
 		);
@@ -98,7 +119,7 @@ class WP_Batch_Processor_Admin {
 			'dg-batches',
 			__( 'Batches', 'wp-batch-processing' ),
 			__( 'Batches', 'wp-batch-processing' ),
-			'manage_options',
+			self::CAPABILITY,
 			'dg-batches',
 			array( $this, 'plugin_page' )
 		);
