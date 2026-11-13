@@ -10,6 +10,14 @@ License: GPL-2+
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 */
 
+/*
+ * Copyright (C) 2020-2026 UAMS Web Services (modifications)
+ *
+ * This is a modified version of WP Batch Processing by Darko Gjorgjijoski
+ * (https://github.com/gdarko/wp-batch-processing). It is free software under
+ * the GNU General Public License, version 2 or any later version; see LICENSE.
+ */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
 }
