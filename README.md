@@ -136,6 +136,18 @@ The tool can be used in many different ways. For example
 If you notice a bug or you want to propose improvements feel free to create a pull request!
 
 
+## Credits
+
+Based on WP Batch Processing by Darko Gjorgjijoski.
+
+Modified by UAMS Web Services.
+
+Developers:
+
+- Todd McKee
+- Josh Daugherty
+
+
 ## License
 
 The plugin is licensed under GPL v2
