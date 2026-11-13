@@ -136,6 +136,23 @@ The tool can be used in many different ways. For example
 If you notice a bug or you want to propose improvements feel free to create a pull request!
 
 
+## Tests
+
+The suite uses Pest 5 with Brain Monkey, so it needs no database and no WordPress checkout. It develops and runs on PHP 8.4.27 (`config.platform.php` in `composer.json`).
+
+```bash
+composer install
+composer test
+```
+
+`composer test` runs `vendor/bin/pest` over `tests/Unit`. The shared local CI runner runs the same suite with the rest of the checks:
+
+```bash
+node .claude/skills/local-ci/local-ci.mjs
+```
+
+Name every test file `*Test.php`, or the suite does not pick it up.
+
 ## License
 
 The plugin is licensed under GPL v2
