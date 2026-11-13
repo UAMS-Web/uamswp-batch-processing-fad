@@ -136,6 +136,17 @@ The tool can be used in many different ways. For example
 If you notice a bug or you want to propose improvements feel free to create a pull request!
 
 
+## Credits
+
+Based on WP Batch Processing by Darko Gjorgjijoski.
+
+Modified by UAMS Web Services.
+
+Developers:
+
+- Todd McKee
+- Josh Daugherty
+
 ## Tests
 
 The suite uses Pest 5 with Brain Monkey, so it needs no database and no WordPress checkout. It develops and runs on PHP 8.4.27 (`config.platform.php` in `composer.json`).
@@ -152,6 +163,7 @@ node .claude/skills/local-ci/local-ci.mjs
 ```
 
 Name every test file `*Test.php`, or the suite does not pick it up.
+
 
 ## License
 
