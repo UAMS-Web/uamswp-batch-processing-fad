@@ -147,7 +147,10 @@ describe('process', function (): void {
 it('does nothing in finish()', function (): void {
     fake_post_queries([]);
 
-    expect((new FaD_Provider_Nrc_Cache)->finish())->toBeNull();
+    $batch = new FaD_Provider_Nrc_Cache;
+    $batch->finish();
+
+    expect($batch->get_items_count())->toBe(0);
 });
 
 it('registers one FaD_Provider_Nrc_Cache with the processor when the init function runs', function (): void {

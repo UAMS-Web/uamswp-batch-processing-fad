@@ -130,7 +130,10 @@ describe('process', function (): void {
 it('does nothing in finish()', function (): void {
     fake_post_queries([]);
 
-    expect((new FaD_AoEs_Batch)->finish())->toBeNull();
+    $batch = new FaD_AoEs_Batch;
+    $batch->finish();
+
+    expect($batch->get_items_count())->toBe(0);
 });
 
 it('registers one FaD_AoEs_Batch with the processor when the init function runs', function (): void {
