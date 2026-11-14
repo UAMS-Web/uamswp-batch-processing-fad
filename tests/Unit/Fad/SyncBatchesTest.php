@@ -5,10 +5,8 @@
  * relationship field of every post it relates to. The two classes mirror each other (post type,
  * field names and init function), so one dataset drives both.
  *
- * process() tests for an already-present id with `$post_id`, a variable the method never defines
- * (the item's id is `$p_id`). Every pass through the loop therefore raises an undefined-variable
- * warning and compares `null` loosely. These tests record the warning rather than hide it, and pin
- * the resulting behavior as it stands.
+ * process() skips a related post whose reverse field already lists the item's id (`$p_id`), so a
+ * second run adds nothing.
  *
  * @see fad/class-condition-sync-batch.php
  * @see fad/class-treatment-sync-batch.php
@@ -17,29 +15,6 @@
 declare(strict_types=1);
 
 use Brain\Monkey\Functions;
-
-/**
- * Runs process() with an error handler that records warnings, and returns what it recorded.
- *
- * @return array<int, string>
- */
-function process_recording_warnings(WP_Batch $batch, int $id): array
-{
-    $warnings = [];
-    set_error_handler(static function (int $level, string $message) use (&$warnings): bool {
-        $warnings[] = $message;
-
-        return true;
-    }, E_WARNING);
-
-    try {
-        process_item($batch, $id, ['id' => $id]);
-    } finally {
-        restore_error_handler();
-    }
-
-    return $warnings;
-}
 
 beforeEach(function (): void {
     forget_singleton(WP_Batch_Processor::class);
@@ -159,7 +134,7 @@ describe('process', function (): void {
         Functions\expect('get_field')->once()->with($reverse, 40, false)->andReturn('');
         Functions\expect('update_field')->once()->with($key, [7], 40);
 
-        process_recording_warnings($batch, 7);
+        process_item($batch, 7, ['id' => 7]);
     })->with('sync batches');
 
     it('appends the post id to the reverse field of a related post that has others', function (string $class, string $id, string $title, string $type, string $field, string $reverse, string $key): void {
@@ -168,7 +143,7 @@ describe('process', function (): void {
         Functions\expect('get_field')->once()->with($reverse, 40, false)->andReturn([5, 6]);
         Functions\expect('update_field')->once()->with($key, [5, 6, 7], 40);
 
-        process_recording_warnings($batch, 7);
+        process_item($batch, 7, ['id' => 7]);
     })->with('sync batches');
 
     it('updates each related post in turn', function (string $class, string $id, string $title, string $type, string $field, string $reverse, string $key): void {
@@ -179,36 +154,35 @@ describe('process', function (): void {
             $written[] = [$name, $value, $post];
         });
 
-        process_recording_warnings($batch, 7);
+        process_item($batch, 7, ['id' => 7]);
 
         expect($written)->toBe([[$key, [7], 40], [$key, [7], 41]]);
     })->with('sync batches');
 
-    it('warns about an undefined $post_id on every related post it visits', function (string $class, string $id, string $title, string $type, string $field): void {
+    it('raises no warning while it walks the related posts', function (string $class, string $id, string $title, string $type, string $field): void {
         $batch = new $class;
         Functions\when('get_field')->alias(fn (string $name, int $post, $format = true) => $name === $field ? [40, 41] : []);
         Functions\when('update_field')->justReturn(true);
 
-        $warnings = process_recording_warnings($batch, 7);
+        $warnings = record_warnings(fn () => process_item($batch, 7, ['id' => 7]));
 
-        expect($warnings)->toBe(['Undefined variable $post_id', 'Undefined variable $post_id']);
+        expect($warnings)->toBe([]);
     })->with('sync batches');
 
-    it('skips a related post whose reverse field holds a value equal to null', function (string $class, string $id, string $title, string $type, string $field, string $reverse): void {
-        // With $post_id undefined, in_array(null, [0]) is true under loose comparison, so the update is skipped.
+    it('skips a related post whose reverse field already lists the post id, as an int or a string', function (string $class, string $id, string $title, string $type, string $field, string $reverse, string $key, string $init, mixed $listed): void {
         $batch = new $class;
         Functions\expect('get_field')->once()->with($field, 7)->andReturn([40]);
-        Functions\expect('get_field')->once()->with($reverse, 40, false)->andReturn([0]);
+        Functions\expect('get_field')->once()->with($reverse, 40, false)->andReturn([5, $listed]);
         Functions\expect('update_field')->never();
 
-        process_recording_warnings($batch, 7);
-    })->with('sync batches');
+        process_item($batch, 7, ['id' => 7]);
+    })->with('sync batches')->with(['an int' => [7], 'a string' => ['7']]);
 
     it('carries on to the next related post after skipping one', function (string $class, string $id, string $title, string $type, string $field, string $reverse, string $key): void {
         $batch = new $class;
         Functions\when('get_field')->alias(fn (string $name, int $post, $format = true) => match (true) {
             $name === $field => [40, 41],
-            $post === 40 => [0],
+            $post === 40 => [5, 7],
             default => [],
         });
         $written = [];
@@ -216,7 +190,7 @@ describe('process', function (): void {
             $written[] = $post;
         });
 
-        process_recording_warnings($batch, 7);
+        process_item($batch, 7, ['id' => 7]);
 
         expect($written)->toBe([41]);
     })->with('sync batches');
