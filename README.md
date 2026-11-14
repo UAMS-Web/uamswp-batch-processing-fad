@@ -169,6 +169,14 @@ Name every test file `*Test.php`, or the suite does not pick it up.
 
 The plugin is licensed under GPL v2
 
+### Modified version
+
+This is a modified version of [WP Batch Processing](https://github.com/gdarko/wp-batch-processing) by Darko Gjorgjijoski. UAMS Web Services changed the plugin between 2020-07-21 (the first commit in this repository) and 2026-11-13 (the date of this notice), adding the Find-a-Doc batches under `fad/` and changing files under `includes/`, `views/` and `assets/`. The commit history of this repository records each change. The whole work stays under the GNU General Public License, version 2 or any later version; the full text is in [`LICENSE`](LICENSE).
+
+Copyright (C) 2020-2026 UAMS Web Services (modifications)
+
+The upstream copyright and license notice follows unchanged.
+
 ```
 Copyright (C) 2019 Darko Gjorgjijoski (https://darkog.com)
 
