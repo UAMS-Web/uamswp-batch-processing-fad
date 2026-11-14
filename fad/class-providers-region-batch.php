@@ -111,6 +111,8 @@ if (class_exists('WP_Batch')) {
                 $acf_field = 'physician_locations';
                 $items = get_field($acf_field, $p_id);
                 if ($items) {
+                    // Defined before the loop, so the update below never reads an undefined variable when $items holds nothing to loop over.
+                    $region = null;
                     foreach ($items as $item) {
                         $region = get_field('location_region', $item);
                         // break loop after first iteration = primary location

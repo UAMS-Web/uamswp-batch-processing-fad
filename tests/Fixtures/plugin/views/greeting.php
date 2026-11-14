@@ -2,4 +2,5 @@
 
 declare(strict_types=1);
 
+/** @var string $name The name to greet. */
 echo 'Hello, '.$name;
