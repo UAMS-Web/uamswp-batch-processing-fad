@@ -168,7 +168,7 @@ describe('enqueue_scripts', function (): void {
         // The version is the script file's own modification time, so give the file a time no
         // directory can share, then put the real one back.
         $script = WP_BP_PATH.'assets/processor.js';
-        $original_mtime = filemtime($script);
+        $original_mtime = filemtime($script) ?: throw new RuntimeException('Cannot read the mtime of '.$script);
         touch($script, 1500000000);
         clearstatcache();
         $pinned_mtime = filemtime($script);
@@ -179,7 +179,7 @@ describe('enqueue_scripts', function (): void {
                 'wp-batch-processing',
                 'https://example.test/wp-content/plugins/uamswp-batch-processing/assets/processor.js',
                 ['jquery'],
-                $pinned_mtime,
+                Mockery::mustBe((string) $pinned_mtime),
                 true
             );
             expectApplied('wp_batch_processing_delay')->once()->with(0)->andReturn(3);

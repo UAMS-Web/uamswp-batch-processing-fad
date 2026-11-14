@@ -54,7 +54,7 @@ ini_set('error_log', sys_get_temp_dir().'/uamswp-batch-processing-tests.log');
 
 setUp();
 
-foreach (glob(__DIR__.'/../fad/class-*.php') as $file) {
+foreach (glob(__DIR__.'/../fad/class-*.php') ?: throw new RuntimeException('No batch files found under fad/.') as $file) {
     require_once $file;
 }
 

@@ -76,7 +76,8 @@ if (class_exists('WP_Batch')) {
             if ($the_query->have_posts()) {
                 while ($the_query->have_posts()) {
                     $the_query->the_post();
-                    $this->push(new WP_Batch_Item(get_the_ID(), ['id' => get_the_ID()]));
+                    // get_the_ID() is an int inside the loop, so the cast changes nothing a test can observe.
+                    $this->push(new WP_Batch_Item((int) get_the_ID(), ['id' => get_the_ID()])); // @pest-mutate-ignore: RemoveIntegerCast
                 }
             }
 

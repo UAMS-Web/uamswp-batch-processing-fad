@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 /**
  * @param  string  $selector
- * @param  int|string|false  $post_id
+ * @param  int|string|false|WP_Term  $post_id  ACF also reads a term object, as the term batches pass.
  * @return mixed
  */
 function get_field($selector, $post_id = false, $format_value = true)

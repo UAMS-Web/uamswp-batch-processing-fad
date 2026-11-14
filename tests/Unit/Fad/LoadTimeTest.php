@@ -20,7 +20,7 @@ declare(strict_types=1);
  */
 function fad_subprocess(string $code): string
 {
-    $process = proc_open(
+    $process = open_process(
         [PHP_BINARY, '-d', 'error_reporting=1', '-d', 'display_errors=1', '-r', $code],
         [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
         $pipes
@@ -48,8 +48,11 @@ function fad_base_classes(): string
 }
 
 dataset('fad files', function () {
-    foreach (glob(dirname(__DIR__, 3).'/fad/class-*.php') as $path) {
-        preg_match("/add_action\(\s*'wp_batch_processing_init',\s*'(\w+)',\s*15,\s*1\s*\);/", (string) file_get_contents($path), $matches);
+    foreach (glob(dirname(__DIR__, 3).'/fad/class-*.php') ?: throw new RuntimeException('No batch files found under fad/.') as $path) {
+        $found = preg_match("/add_action\(\s*'wp_batch_processing_init',\s*'(\w+)',\s*15,\s*1\s*\);/", (string) file_get_contents($path), $matches);
+        if ($found !== 1) {
+            throw new RuntimeException($path.' does not register its init function.');
+        }
 
         yield basename($path) => [$path, $matches[1]];
     }
