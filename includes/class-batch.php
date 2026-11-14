@@ -58,7 +58,7 @@ abstract class WP_Batch
      *
      * @var WP_Batch_Item[]
      */
-    protected $items = [];
+    protected array $items = [];
 
     /**
      * Initialize
