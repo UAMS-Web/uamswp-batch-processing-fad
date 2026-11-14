@@ -67,8 +67,8 @@ function stub_term(object $term, array $fields = [], array $meta = [], mixed $ex
 }
 
 it('carries its batch id and title', function (string $class, string $id, string $title): void {
-    expect((new $class)->id)->toBe($id)
-        ->and((new $class)->title)->toBe($title);
+    expect(batch_of($class)->id)->toBe($id)
+        ->and(batch_of($class)->title)->toBe($title);
 })->with('term batches');
 
 describe('setup', function (): void {
@@ -77,7 +77,7 @@ describe('setup', function (): void {
         $store = [];
         stub_options($store);
 
-        $batch = new $class;
+        $batch = batch_of($class);
         $seen = [];
         while (($item = $batch->get_next_item()) !== false) {
             $seen[] = [$item->id, $item->get_value('id')];
@@ -99,7 +99,7 @@ describe('setup', function (): void {
     })->with('term batches');
 
     it('queues nothing when the taxonomy has no terms', function (string $class): void {
-        expect((new $class)->get_items_count())->toBe(0);
+        expect(batch_of($class)->get_items_count())->toBe(0);
     })->with('term batches');
 });
 
@@ -110,7 +110,7 @@ describe('process', function (): void {
     });
 
     it('looks nothing up and returns true for an item with no term id', function (string $class): void {
-        $batch = new $class;
+        $batch = batch_of($class);
         Functions\expect('get_term_by')->never();
         Functions\expect('wp_insert_post')->never();
 
@@ -120,7 +120,7 @@ describe('process', function (): void {
 
     it("inserts nothing when a post with the term's name already exists", function (string $class, string $id, string $title, string $taxonomy): void {
         /** @var UnitTestCase $this */
-        $batch = new $class;
+        $batch = batch_of($class);
         Functions\expect('get_term_by')->once()->with('id', 7, $taxonomy)->andReturn($this->term);
         when('get_field')->justReturn(false);
         when('get_page_by_title')->justReturn((object) ['ID' => 1]);
@@ -133,7 +133,7 @@ describe('process', function (): void {
 
     it('inserts a published post named after the term, at the term id plus the offset', function (string $class, string $id, string $title, string $taxonomy, int $offset, string $contentField, string $excerptField): void {
         /** @var UnitTestCase $this */
-        $batch = new $class;
+        $batch = batch_of($class);
         stub_term($this->term, [$contentField => '<p>Body</p>', $excerptField => 'Short']);
         Functions\expect('wp_insert_post')->once()->with([
             'import_id' => 7 + $offset,
@@ -150,7 +150,7 @@ describe('process', function (): void {
 
     it('logs the term id it is about to process', function (string $class): void {
         /** @var UnitTestCase $this */
-        $batch = new $class;
+        $batch = batch_of($class);
         $log = tempnam(sys_get_temp_dir(), 'bp-log');
         $previous = ini_set('error_log', $log);
         when('get_term_by')->justReturn($this->term);
@@ -170,7 +170,7 @@ describe('process', function (): void {
 
     it('treats any falsy but non-null lookup result as no existing post', function (string $class, string $id, string $title, string $taxonomy): void {
         /** @var UnitTestCase $this */
-        $batch = new $class;
+        $batch = batch_of($class);
         stub_term($this->term, [], [], false);
         Functions\expect('wp_insert_post')->once()->andReturn(500);
 
@@ -179,7 +179,7 @@ describe('process', function (): void {
 
     it("looks the post up by the term's name", function (string $class): void {
         /** @var UnitTestCase $this */
-        $batch = new $class;
+        $batch = batch_of($class);
         when('get_term_by')->justReturn($this->term);
         when('get_field')->justReturn(false);
         Functions\expect('get_page_by_title')->once()->with('Asthma')->andReturn((object) ['ID' => 1]);
@@ -189,7 +189,7 @@ describe('process', function (): void {
 
     it('copies each term meta value onto the new post, unserializing a serialized one', function (string $class): void {
         /** @var UnitTestCase $this */
-        $batch = new $class;
+        $batch = batch_of($class);
         stub_term($this->term, [], ['color' => ['red', 'ignored'], 'size' => [serialize(['a' => 1])]]);
         when('wp_insert_post')->justReturn(500);
         $metaRequests = [];
@@ -211,7 +211,7 @@ describe('process', function (): void {
 
     it('copies no meta when the term has none', function (string $class): void {
         /** @var UnitTestCase $this */
-        $batch = new $class;
+        $batch = batch_of($class);
         stub_term($this->term);
         when('wp_insert_post')->justReturn(500);
         Functions\expect('update_post_meta')->never();
@@ -221,7 +221,7 @@ describe('process', function (): void {
 
     it('stores the related ids of the other type, offset and as strings', function (string $class, string $id, string $title, string $taxonomy, int $offset, string $contentField, string $excerptField, string $relationField, int $relationOffset): void {
         /** @var UnitTestCase $this */
-        $batch = new $class;
+        $batch = batch_of($class);
         stub_term($this->term, [$relationField => ['5', 12]]);
         when('wp_insert_post')->justReturn(500);
         Functions\expect('update_post_meta')->once()->with(500, $relationField, [(string) (5 + $relationOffset), (string) (12 + $relationOffset)]);
@@ -231,7 +231,7 @@ describe('process', function (): void {
 
     it('reads the relations from the term', function (string $class, string $id, string $title, string $taxonomy, int $offset, string $contentField, string $excerptField, string $relationField): void {
         /** @var UnitTestCase $this */
-        $batch = new $class;
+        $batch = batch_of($class);
         when('get_term_by')->justReturn($this->term);
         when('get_page_by_title')->justReturn();
         when('get_term_meta')->justReturn([]);
@@ -245,7 +245,10 @@ describe('process', function (): void {
 });
 
 it('does nothing in finish()', function (string $class): void {
-    expect((new $class)->finish())->toBeNull();
+    $batch = batch_of($class);
+    $batch->finish();
+
+    expect($batch->get_items_count())->toBe(0);
 })->with('term batches');
 
 it('registers one batch of its class with the processor when the init function runs', function (string $class, string $id, string $title, string $taxonomy, int $offset, string $contentField, string $excerptField, string $relationField, int $relationOffset, string $init): void {

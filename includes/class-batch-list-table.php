@@ -55,6 +55,9 @@ class WP_BP_List_Table extends WP_List_Table
         ]);
     }
 
+    /**
+     * @return array<int, string>
+     */
     public function get_table_classes(): array
     {
         return ['widefat', 'fixed', 'striped', $this->_args['plural']];
@@ -88,6 +91,8 @@ class WP_BP_List_Table extends WP_List_Table
 
     /**
      * Get the column names
+     *
+     * @return array<string, string>
      */
     public function get_columns(): array
     {
@@ -114,6 +119,8 @@ class WP_BP_List_Table extends WP_List_Table
 
     /**
      * Get sortable columns
+     *
+     * @return array<string, mixed>
      */
     public function get_sortable_columns(): array
     {
@@ -122,6 +129,8 @@ class WP_BP_List_Table extends WP_List_Table
 
     /**
      * Set the bulk actions
+     *
+     * @return array<string, string>
      */
     public function get_bulk_actions(): array
     {

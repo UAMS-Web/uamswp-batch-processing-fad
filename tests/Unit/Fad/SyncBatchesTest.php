@@ -51,7 +51,7 @@ dataset('sync batches', [
 
 it('carries its batch id and title', function (string $class, string $id, string $title): void {
     fake_post_queries([]);
-    $batch = new $class;
+    $batch = batch_of($class);
 
     expect($batch->id)->toBe($id)
         ->and($batch->title)->toBe($title);
@@ -63,7 +63,7 @@ describe('setup', function (): void {
         $store = [];
         stub_options($store);
 
-        $batch = new $class;
+        $batch = batch_of($class);
         $seen = [];
         while (($item = $batch->get_next_item()) !== false) {
             $seen[] = [$item->id, $item->get_value('id')];
@@ -93,7 +93,7 @@ describe('setup', function (): void {
     it('queues nothing when there are no posts, and still resets the post data once', function (string $class): void {
         fake_post_queries([]);
 
-        $batch = new $class;
+        $batch = batch_of($class);
 
         expect($batch->get_items_count())->toBe(0)
             ->and($GLOBALS['bp_reset_postdata_calls'])->toBe(1);
@@ -114,7 +114,7 @@ describe('process', function (): void {
     });
 
     it('reads nothing and returns true for an item with no post id', function (string $class): void {
-        $batch = new $class;
+        $batch = batch_of($class);
         Functions\expect('get_field')->never();
         Functions\expect('update_field')->never();
 
@@ -123,7 +123,7 @@ describe('process', function (): void {
     })->with('sync batches');
 
     it('updates nothing when the relationship field is not an array', function (string $class, string $id, string $title, string $type, string $field): void {
-        $batch = new $class;
+        $batch = batch_of($class);
         Functions\expect('get_field')->once()->with($field, 7)->andReturn(false);
         Functions\expect('update_field')->never();
 
@@ -131,7 +131,7 @@ describe('process', function (): void {
     })->with('sync batches');
 
     it('adds the post id to the reverse field of a related post that has none', function (string $class, string $id, string $title, string $type, string $field, string $reverse, string $key): void {
-        $batch = new $class;
+        $batch = batch_of($class);
         Functions\expect('get_field')->once()->with($field, 7)->andReturn([40]);
         Functions\expect('get_field')->once()->with($reverse, 40, false)->andReturn('');
         Functions\expect('update_field')->once()->with($key, [7], 40);
@@ -140,7 +140,7 @@ describe('process', function (): void {
     })->with('sync batches');
 
     it('appends the post id to the reverse field of a related post that has others', function (string $class, string $id, string $title, string $type, string $field, string $reverse, string $key): void {
-        $batch = new $class;
+        $batch = batch_of($class);
         Functions\expect('get_field')->once()->with($field, 7)->andReturn([40]);
         Functions\expect('get_field')->once()->with($reverse, 40, false)->andReturn([5, 6]);
         Functions\expect('update_field')->once()->with($key, [5, 6, 7], 40);
@@ -149,7 +149,7 @@ describe('process', function (): void {
     })->with('sync batches');
 
     it('updates each related post in turn', function (string $class, string $id, string $title, string $type, string $field, string $reverse, string $key): void {
-        $batch = new $class;
+        $batch = batch_of($class);
         when('get_field')->alias(fn (string $name, int $post, $format = true): array => $name === $field ? [40, 41] : []);
         $written = [];
         when('update_field')->alias(function (string $name, array $value, int $post) use (&$written): void {
@@ -162,7 +162,7 @@ describe('process', function (): void {
     })->with('sync batches');
 
     it('raises no warning while it walks the related posts', function (string $class, string $id, string $title, string $type, string $field): void {
-        $batch = new $class;
+        $batch = batch_of($class);
         when('get_field')->alias(fn (string $name, int $post, $format = true): array => $name === $field ? [40, 41] : []);
         when('update_field')->justReturn(true);
 
@@ -172,7 +172,7 @@ describe('process', function (): void {
     })->with('sync batches');
 
     it('skips a related post whose reverse field already lists the post id, as an int or a string', function (string $class, string $id, string $title, string $type, string $field, string $reverse, string $key, string $init, mixed $listed): void {
-        $batch = new $class;
+        $batch = batch_of($class);
         Functions\expect('get_field')->once()->with($field, 7)->andReturn([40]);
         Functions\expect('get_field')->once()->with($reverse, 40, false)->andReturn([5, $listed]);
         Functions\expect('update_field')->never();
@@ -181,7 +181,7 @@ describe('process', function (): void {
     })->with('sync batches')->with(['an int' => [7], 'a string' => ['7']]);
 
     it('carries on to the next related post after skipping one', function (string $class, string $id, string $title, string $type, string $field, string $reverse, string $key): void {
-        $batch = new $class;
+        $batch = batch_of($class);
         when('get_field')->alias(fn (string $name, int $post, $format = true): array => match (true) {
             $name === $field => [40, 41],
             $post === 40 => [5, 7],
@@ -201,7 +201,11 @@ describe('process', function (): void {
 it('does nothing in finish()', function (string $class): void {
     fake_post_queries([]);
 
-    expect((new $class)->finish())->toBeNull();
+    $batch = batch_of($class);
+
+    $batch->finish();
+
+    expect($batch->get_items_count())->toBe(0);
 })->with('sync batches');
 
 it('registers one batch of its class with the processor when the init function runs', function (string $class, string $id, string $title, string $type, string $field, string $reverse, string $key, string $init): void {
