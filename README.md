@@ -164,6 +164,26 @@ node .claude/skills/local-ci/local-ci.mjs
 
 Name every test file `*Test.php`, or the suite does not pick it up.
 
+### Reading the runner's verdict
+
+The runner selects jobs from the branch's diff against `origin/master`, runs each on the local PHP toolchain, and ends with a summary block that names the validated commit and lists every job as `PASS`, `FAIL` or `SKIPPED`. A failing job fails the run: the exit status is non-zero exactly when the summary says a job failed, and the summary is what to read. Write the run to a file and read the block at the end:
+
+```bash
+node .claude/skills/local-ci/local-ci.mjs > ci.log 2>&1
+```
+
+`--jobs a,b` runs named jobs only and `--all` runs every job; the two exclude each other. The jobs live in `local-ci.json`. A pull request carries the runner's verdict as a comment naming the commit it validated.
+
+### Pre-commit guard
+
+`.githooks/pre-commit` refuses a commit that stages a file matching `guard.deny` in `local-ci.json` (a `wp-config.php`, a database dump, a spreadsheet export, an `.env`, a key). Git does not run a hook from the repository on its own, so each clone turns it on once:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+The runner warns when the hook is tracked and `core.hooksPath` is unset.
+
 
 ## License
 
