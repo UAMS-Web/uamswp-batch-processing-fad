@@ -118,7 +118,8 @@ if ( class_exists( 'WP_Batch' ) ) {
 				$excerpt = get_field('condition_short_desc', $term);
 				// $description = $term->description; //Description
 
-				$new_id = (int)$t_id + $post_id_offset;
+				// WordPress term ids are integers, so the cast changes nothing a test can observe.
+				$new_id = (int)$t_id + $post_id_offset; // @pest-mutate-ignore: RemoveIntegerCast
 				
 				//Above finds all the data from Custom Taxonomy and associated metadata.
 				//We make a new post for each item, using same details from Taxonomy
