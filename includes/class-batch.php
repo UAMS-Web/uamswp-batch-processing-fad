@@ -212,6 +212,9 @@ abstract class WP_Batch
         $total_processed = $this->get_processed_count();
         $percentage = (! empty($total_items)) ? 100 - ((($total_items - $total_processed) / $total_items) * 100) : 0;
 
+        // The cast is a no-op: number_format() takes an int and a float alike, and the percentage is
+        // an int 0 or a float. The thousands separator is never reached: the value stays within 0 to 100.
+        // @pest-mutate-ignore: RemoveDoubleCast, EmptyStringToNotEmpty
         return number_format((float) $percentage, 2, '.', '');
     }
 
