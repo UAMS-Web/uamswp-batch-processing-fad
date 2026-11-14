@@ -36,6 +36,13 @@ includes:
     - vendor/pestphp/pest/extension.neon
 
 parameters:
+    # Pest types the closure of `it()`, `test()` and `beforeEach()` as `$this` being a `TestCall`
+    # (`@param-closure-this TestCall`), while at run time it is the test case, whose properties the
+    # suite sets in `beforeEach()` and reads in the tests (`$this->store`, `$this->batch`). Treating
+    # `TestCall` as an object crate lets those reads and writes analyze, without an ignored error.
+    universalObjectCratesClasses:
+        - Pest\PendingCalls\TestCall
+
     # The PHP versions the code must parse and run on. `min` is the
     # LOWEST version the plugin supports (composer.json's `php` constraint and
     # the plugin header's `Requires PHP`); `max` is the developer's PHP, which
@@ -53,7 +60,7 @@ parameters:
     # from 0 upward (see the code-quality skill), then raise it by one per
     # change as findings are fixed, until `max`. Lowering it is a deliberate,
     # argued change, not a quiet edit to get a red run green.
-    level: 0
+    level: 1
 
     # The directories and files holding first-party PHP, including
     # the plugin header file at the root. Include tests: test bugs are real
