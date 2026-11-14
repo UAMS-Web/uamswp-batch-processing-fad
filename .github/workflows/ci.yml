@@ -14,8 +14,10 @@ name: CI
 # The lint and unit chain is the shared one, `UAMS-Web/uams-ci-workflows`, called by the
 # `checks` job. One definition serves every UAMS-Web repository, so this plugin does not
 # carry a copy that drifts. The call runs on Linux only, switches on the two jobs only a
-# plugin runs (`floor-lint`, `download-archive`), leaves mutation testing off (and with it
-# the `mutate-ignore` job), and runs the plugin's unit suite as `composer test:unit`.
+# plugin runs (`floor-lint`, `download-archive`), runs mutation testing and the `mutate-ignore`
+# audit over `includes`, `fad` and the plugin file (`mutate-paths`, `mutate-ignore-paths`), and
+# runs the plugin's unit suite as `composer test:unit`. A pull request or a push mutates only the
+# changed files under `mutate-paths`; a `workflow_dispatch` mutates everything `composer mutate` covers.
 # `phpcs` stays off: this plugin has no PHPCS configuration. The chain's own header lists
 # every input and its default; pass only inputs the pinned tag declares.
 #
@@ -30,7 +32,7 @@ name: CI
 #
 # What the plugin carries for the call, because the called jobs check out this repository:
 # `.github/actions/setup/action.yml`, the synced `.claude/skills` scripts, the Composer
-# scripts `test:pint`, `test:refactor`, `stan` and `test:unit`, and `scripts/lint-floor.php`.
+# scripts `test:pint`, `test:refactor`, `stan`, `test:unit` and `mutate`, and `scripts/lint-floor.php`.
 
 on:
   pull_request:
@@ -57,7 +59,8 @@ jobs:
     uses: UAMS-Web/uams-ci-workflows/.github/workflows/ci.yml@v0.11.1
     with:
       linux-only: true
-      mutate: false
+      mutate-paths: includes fad uamswp-batch-processing.php
+      mutate-ignore-paths: includes fad
       floor-lint: true
       floor-lint-php: '8.2'
       download-archive: true
