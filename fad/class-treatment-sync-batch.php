@@ -111,10 +111,10 @@ if ( class_exists( 'WP_Batch' ) ) {
                             $value2new = array();
                         }
             
-                        // bail early if the current $post_id is already found in selected post's $value2new
-                        if( in_array($post_id, $value2new) ) continue;
-            
-                        // append the current $post_id to the selected post's 'related_posts' value
+                        // bail early if the current $p_id is already found in selected post's $value2new
+                        if( in_array($p_id, $value2new) ) continue;
+
+                        // append the current $p_id to the selected post's 'related_posts' value
                         $value2new[] = $p_id;
             
                         // update the selected post's value (use field's key for performance)
