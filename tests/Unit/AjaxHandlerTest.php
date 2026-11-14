@@ -119,6 +119,34 @@ describe('process_next_item', function (): void {
         expect(handler_sends('process_next_item')->data)->toBe(['message' => 'Invalid batch id']);
     })->with(['empty string' => [''], 'zero' => ['0']]);
 
+    it('refuses a batch id no registered batch has, and runs no batch code', function (): void {
+        $batch = new FakeBatch('fake', [1, 2]);
+        WP_Batch_Processor::get_instance()->register($batch);
+        $_REQUEST['batch_id'] = 'nope';
+
+        $sent = handler_sends('process_next_item');
+
+        expect($sent->success)->toBeFalse()
+            ->and($sent->data)->toBe(['message' => 'Invalid batch id'])
+            ->and($batch->processedIds)->toBe([]);
+    });
+
+    it('lifts the PHP time limit before it processes an item', function (): void {
+        $batch = new FakeBatch('fake', [1]);
+        WP_Batch_Processor::get_instance()->register($batch);
+        $_REQUEST['batch_id'] = 'fake';
+        $previous = ini_set('max_execution_time', '30');
+
+        try {
+            handler_sends('process_next_item');
+            $limit = ini_get('max_execution_time');
+        } finally {
+            ini_set('max_execution_time', (string) $previous);
+        }
+
+        expect($limit)->toBe('0');
+    });
+
     it('processes the next unprocessed item and reports progress', function (): void {
         $batch = new FakeBatch('fake', [1, 2]);
         WP_Batch_Processor::get_instance()->register($batch);
@@ -244,6 +272,19 @@ describe('restart_batch', function (): void {
 
         expect($sent->success)->toBeFalse()
             ->and($sent->data)->toBe(['message' => 'Invalid batch id']);
+    });
+
+    it('refuses a batch id no registered batch has, and restarts nothing', function (): void {
+        $batch = new FakeBatch('fake', [1, 2]);
+        $batch->mark_as_processed(1);
+        WP_Batch_Processor::get_instance()->register($batch);
+        $_REQUEST['batch_id'] = 'nope';
+
+        $sent = handler_sends('restart_batch');
+
+        expect($sent->success)->toBeFalse()
+            ->and($sent->data)->toBe(['message' => 'Invalid batch id'])
+            ->and($this->store)->not->toBe([]);
     });
 
     it('clears the batch progress and reports success', function (): void {
