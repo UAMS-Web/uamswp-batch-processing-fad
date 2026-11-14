@@ -211,12 +211,3 @@ parameters:
             message: '#of internal class Pest\\#'
             path: tests
             reportUnmatched: false
-        # The same holds for the properties a test shares between `beforeEach()` and its tests:
-        # Pest types the closure `$this` as its `TestCall`, tagged @internal, and reading or
-        # writing a property on it (`$this->store`) is Pest's intended use. Pinned to `tests/`
-        # and to the Pest namespace, so an internal class from anywhere else still fails.
-        -
-            identifier: property.internalClass
-            message: '#of internal class Pest\\#'
-            path: tests
-            reportUnmatched: false

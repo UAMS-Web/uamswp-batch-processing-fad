@@ -34,6 +34,7 @@ function handler_sends(string $method): JsonSent
 }
 
 beforeEach(function (): void {
+    /** @var UnitTestCase $this */
     $this->store = [];
     stub_options($this->store);
 
@@ -53,11 +54,13 @@ beforeEach(function (): void {
     $this->userCan = true;
     $this->calls = [];
     when('check_ajax_referer')->alias(function (...$args): int|false {
+        /** @var UnitTestCase $this */
         $this->calls['check_ajax_referer'][] = $args;
 
         return $this->nonceValid ? 1 : false;
     });
     when('current_user_can')->alias(function (...$args) {
+        /** @var UnitTestCase $this */
         $this->calls['current_user_can'][] = $args;
 
         return $this->userCan;
@@ -85,6 +88,7 @@ it('registers both actions on the admin-ajax hooks when it is built', function (
 
 describe('process_next_item', function (): void {
     it('refuses a request whose nonce does not check out', function (): void {
+        /** @var UnitTestCase $this */
         $this->nonceValid = false;
 
         $sent = handler_sends('process_next_item');
@@ -97,6 +101,7 @@ describe('process_next_item', function (): void {
     });
 
     it('refuses with 403 a user who lacks the capability, even with a valid nonce', function (): void {
+        /** @var UnitTestCase $this */
         $_REQUEST['batch_id'] = 'fake';
         $this->userCan = false;
 
@@ -247,6 +252,7 @@ describe('process_next_item', function (): void {
 
 describe('restart_batch', function (): void {
     it('refuses a request whose nonce does not check out', function (): void {
+        /** @var UnitTestCase $this */
         $this->nonceValid = false;
 
         $sent = handler_sends('restart_batch');
@@ -259,6 +265,7 @@ describe('restart_batch', function (): void {
     });
 
     it('refuses with 403 a user who lacks the capability, even with a valid nonce', function (): void {
+        /** @var UnitTestCase $this */
         $_REQUEST['batch_id'] = 'fake';
         $this->userCan = false;
 
@@ -278,6 +285,7 @@ describe('restart_batch', function (): void {
     });
 
     it('refuses a batch id no registered batch has, and restarts nothing', function (): void {
+        /** @var UnitTestCase $this */
         $batch = new FakeBatch('fake', [1, 2]);
         $batch->mark_as_processed(1);
         WP_Batch_Processor::get_instance()->register($batch);
@@ -291,6 +299,7 @@ describe('restart_batch', function (): void {
     });
 
     it('clears the batch progress and reports success', function (): void {
+        /** @var UnitTestCase $this */
         $batch = new FakeBatch('fake', [1, 2]);
         $batch->mark_as_processed(1);
         WP_Batch_Processor::get_instance()->register($batch);
@@ -304,6 +313,7 @@ describe('restart_batch', function (): void {
     });
 
     it('does not touch a batch that was not asked for', function (): void {
+        /** @var UnitTestCase $this */
         $other = new FakeBatch('other', [1]);
         $other->mark_as_processed(1);
         WP_Batch_Processor::get_instance()->register($other);
