@@ -59,6 +59,18 @@ foreach ([
 restore_error_handler();
 error_reporting($bpErrorReporting);
 
+// The batches under fad/ register themselves on a hook as they load, so load them with Brain Monkey up too.
+// Their process() methods call error_log() on some paths; send it to a file instead of the test output.
+ini_set('error_log', sys_get_temp_dir().'/uamswp-batch-processing-tests.log');
+
+Brain\Monkey\setUp();
+
+foreach (glob(__DIR__.'/../fad/class-*.php') as $file) {
+    require_once $file;
+}
+
+Brain\Monkey\tearDown();
+
 // A concrete batch for the tests; it extends WP_Batch, so it loads after the includes.
 require_once __DIR__.'/Fixtures/FakeBatch.php';
 require_once __DIR__.'/Fixtures/JsonSent.php';

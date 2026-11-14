@@ -31,6 +31,11 @@ uses()
 
         // __(), _e(), esc_html__() and the rest return or echo their text unchanged.
         Functions\stubTranslationFunctions();
+
+        // No queued query responses or recorded query arguments carry over from the last test.
+        WP_Query::reset();
+        WP_Term_Query::reset();
+        $GLOBALS['bp_reset_postdata_calls'] = 0;
     })
     ->afterEach(function (): void {
         $this->addToAssertionCount(Mockery::getContainer()->mockery_getExpectationCount());
@@ -48,6 +53,33 @@ function forget_singleton(string $class): void
 {
     $property = new ReflectionProperty($class, 'instance');
     $property->setValue(null, null);
+}
+
+/**
+ * Queues the post ids each `new WP_Query` in a batch's setup() will return, in order, and stubs the
+ * template functions the loop calls: get_the_ID() answers with the post the_post() last moved to,
+ * and wp_reset_postdata() adds one to $GLOBALS['bp_reset_postdata_calls'].
+ *
+ * @param  array<int, int>  ...$idLists  One list of post ids per query, in the order the queries are built.
+ */
+function fake_post_queries(array ...$idLists): void
+{
+    WP_Query::$responses = $idLists;
+
+    Functions\when('get_the_ID')->alias(fn (): int => WP_Query::$currentId);
+    Functions\when('wp_reset_postdata')->alias(function (): void {
+        $GLOBALS['bp_reset_postdata_calls']++;
+    });
+}
+
+/**
+ * Runs a batch's process() over an item built from the given data, returning what process() returned.
+ *
+ * @param  array<string, mixed>  $data
+ */
+function process_item(WP_Batch $batch, int|string $id, array $data): mixed
+{
+    return $batch->process(new WP_Batch_Item($id, $data));
 }
 
 /**
