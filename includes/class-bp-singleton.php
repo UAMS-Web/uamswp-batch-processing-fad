@@ -43,7 +43,7 @@ trait WP_BP_Singleton {
 	/**
 	 * WP_BP_Singleton constructor.
 	 */
-	private function __construct() {
+	final private function __construct() {
 		$this->init();
 	}
 

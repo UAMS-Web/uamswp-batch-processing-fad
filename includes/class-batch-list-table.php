@@ -37,6 +37,13 @@ if ( ! class_exists( 'WP_List_Table' ) ) { // @pest-mutate-ignore: IfNegated
  */
 class WP_BP_List_Table extends \WP_List_Table {
 
+	/**
+	 * The status filter read from the request by prepare_items().
+	 *
+	 * @var string|null
+	 */
+	public $page_status;
+
 	function __construct() {
 		parent::__construct( array(
 			'singular' => 'batch',

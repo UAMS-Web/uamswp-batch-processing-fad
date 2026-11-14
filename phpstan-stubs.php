@@ -1,0 +1,31 @@
+<?php
+
+/**
+ * Declarations PHPStan reads and never runs, for functions the plugin calls that its
+ * stubs do not cover.
+ *
+ * `get_field()` and `update_field()` come from Advanced Custom Fields, a plugin the
+ * Find-a-Doc site installs and this repository does not. Listed under `scanFiles` in
+ * `phpstan.neon.dist`, so the file is not loaded at runtime or in the tests.
+ */
+
+/**
+ * @param  string  $selector
+ * @param  int|string|false  $post_id
+ * @return mixed
+ */
+function get_field($selector, $post_id = false, $format_value = true)
+{
+    return null;
+}
+
+/**
+ * @param  string  $selector
+ * @param  mixed  $value
+ * @param  int|string|false  $post_id
+ * @return bool
+ */
+function update_field($selector, $value, $post_id = false)
+{
+    return true;
+}
