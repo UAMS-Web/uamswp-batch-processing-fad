@@ -94,6 +94,7 @@ function run_init(string $function): void
     if (! is_callable($function)) {
         throw new InvalidArgumentException($function.' is not a function.');
     }
+
     $function();
 }
 
