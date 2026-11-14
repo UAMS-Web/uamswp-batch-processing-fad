@@ -181,5 +181,7 @@ it('does nothing in finish() unless a batch overrides it', function (): void {
         }
     };
 
-    expect($plain->finish())->toBeNull();
+    $plain->finish();
+
+    expect($plain->get_items_count())->toBe(0);
 });
