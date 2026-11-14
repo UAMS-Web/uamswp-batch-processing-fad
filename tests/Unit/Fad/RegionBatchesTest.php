@@ -129,6 +129,7 @@ describe('process, for the batches that store every region', function (): void {
                 12 => 'North',
                 default => 5,
             },
+            default => throw new LogicException('get_field() was asked for a field this test does not stub: '.$name),
         });
         Functions\expect('update_field')->once()->with($target, ['North', 2 => '5'], 7);
 
