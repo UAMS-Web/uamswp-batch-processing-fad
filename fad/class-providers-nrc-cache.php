@@ -18,7 +18,10 @@
  * along with WP Batch Processing. If not, see <https://www.gnu.org/licenses/>.
  **********************************************************************/
 
-if ( ! defined( 'ABSPATH' ) ) {
+// The direct-access guard runs as the file loads, before any test, and dies when it fires, so no test can reach it
+// in this process; tests/Unit/Fad/LoadTimeTest.php pins it in a subprocess.
+// @pest-mutate-ignore: RemoveNot
+if ( ! defined( 'ABSPATH' ) ) { // @pest-mutate-ignore: IfNegated
 	die( 'Direct access is not allowed.' );
 }
 
@@ -164,7 +167,8 @@ if ( class_exists( 'WP_Batch' ) ) {
 		WP_Batch_Processor::get_instance()->register( $batch );
 	}
 
-	add_action( 'wp_batch_processing_init', 'providers_cache_nrc_data_batch_processing_init', 15, 1 );
+	// Registers the batch as the file loads, before any test; tests/Unit/Fad/LoadTimeTest.php pins the hook, its priority and its argument count.
+	add_action( 'wp_batch_processing_init', 'providers_cache_nrc_data_batch_processing_init', 15, 1 ); // @pest-mutate-ignore: DecrementInteger, IncrementInteger, RemoveFunctionCall
 }
 
 
