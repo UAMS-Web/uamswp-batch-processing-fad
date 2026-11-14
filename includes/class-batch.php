@@ -102,6 +102,7 @@ abstract class WP_Batch
      * Queues the item for processing.
      *
      * @param  WP_Batch_Item  $item
+     * @return void
      */
     protected function push($item)
     {
@@ -156,7 +157,7 @@ abstract class WP_Batch
     /**
      * Returns processed batch item ids
      *
-     * @return array
+     * @return array<int, int|string>
      */
     public function get_processed_items()
     {
@@ -177,6 +178,7 @@ abstract class WP_Batch
      * Mark specific id as processed.
      *
      * @param  int  $id
+     * @return void
      */
     public function mark_as_processed($id)
     {
@@ -225,6 +227,8 @@ abstract class WP_Batch
 
     /**
      * Restarts the processed items store
+     *
+     * @return void
      */
     public function restart()
     {

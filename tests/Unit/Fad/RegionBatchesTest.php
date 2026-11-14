@@ -41,7 +41,7 @@ dataset('all-region batches', [
 
 it('carries its batch id and title', function (string $class, string $id, string $title): void {
     fake_post_queries([]);
-    $batch = new $class;
+    $batch = batch_of($class);
 
     expect($batch->id)->toBe($id)
         ->and($batch->title)->toBe($title);
@@ -53,7 +53,7 @@ describe('setup', function (): void {
         $store = [];
         stub_options($store);
 
-        $batch = new $class;
+        $batch = batch_of($class);
         $seen = [];
         while (($item = $batch->get_next_item()) !== false) {
             $seen[] = [$item->id, $item->get_value('id')];
@@ -83,7 +83,7 @@ describe('setup', function (): void {
     it('queues nothing when there are no posts, and still resets the post data once', function (string $class): void {
         fake_post_queries([]);
 
-        $batch = new $class;
+        $batch = batch_of($class);
 
         expect($batch->get_items_count())->toBe(0)
             ->and($GLOBALS['bp_reset_postdata_calls'])->toBe(1);
@@ -104,7 +104,7 @@ describe('process, for the batches that store every region', function (): void {
     });
 
     it('reads nothing and returns true for an item with no post id', function (string $class): void {
-        $batch = new $class;
+        $batch = batch_of($class);
         Functions\expect('get_field')->never();
         Functions\expect('update_field')->never();
 
@@ -113,7 +113,7 @@ describe('process, for the batches that store every region', function (): void {
     })->with('all-region batches');
 
     it('updates nothing when the post relates to no locations', function (string $class, string $locations): void {
-        $batch = new $class;
+        $batch = batch_of($class);
         Functions\expect('get_field')->once()->with($locations, 7)->andReturn([]);
         Functions\expect('update_field')->never();
 
@@ -121,7 +121,7 @@ describe('process, for the batches that store every region', function (): void {
     })->with('all-region batches');
 
     it("stores each location's region once, as strings", function (string $class, string $locations, string $target): void {
-        $batch = new $class;
+        $batch = batch_of($class);
         when('get_field')->alias(fn (string $name, int $post): array|string|int => match ($name) {
             $locations => [11, 12, 13],
             'location_region' => match ($post) {
@@ -183,7 +183,11 @@ describe('process, for the provider batch', function (): void {
 it('does nothing in finish()', function (string $class): void {
     fake_post_queries([]);
 
-    expect((new $class)->finish())->toBeNull();
+    $batch = batch_of($class);
+
+    $batch->finish();
+
+    expect($batch->get_items_count())->toBe(0);
 })->with('region batches');
 
 it('registers one batch of its class with the processor when the init function runs', function (string $class, string $id, string $title, string $type, string $init): void {

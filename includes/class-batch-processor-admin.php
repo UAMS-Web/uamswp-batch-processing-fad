@@ -53,6 +53,8 @@ class WP_Batch_Processor_Admin
 
     /**
      * Kick-in the class
+     *
+     * @return void
      */
     protected function init()
     {
@@ -164,6 +166,7 @@ class WP_Batch_Processor_Admin
     /**
      * Returns true if the current screen is batch runners one.
      *
+     * @param  string|null  $action
      * @return bool
      */
     private function is_batch_runner_screen($action = null)

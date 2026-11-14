@@ -49,6 +49,23 @@ function fake_post_queries(array ...$idLists): void
 }
 
 /**
+ * Builds the batch a dataset names.
+ *
+ * A dataset hands a test its class as a plain string, so `new $class` reaches the analyzer as an
+ * unknown type; this returns a WP_Batch it can follow, and refuses a class that is not one.
+ *
+ * @param  string  $class  A WP_Batch subclass.
+ */
+function batch_of(string $class): WP_Batch
+{
+    if (! is_a($class, WP_Batch::class, true)) {
+        throw new InvalidArgumentException($class.' is not a WP_Batch.');
+    }
+
+    return new $class;
+}
+
+/**
  * Runs a batch's process() over an item built from the given data, returning what process() returned.
  *
  * @param  array<string, mixed>  $data

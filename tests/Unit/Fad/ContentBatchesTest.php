@@ -42,7 +42,7 @@ dataset('content batches', [
 
 it('carries its batch id and title', function (string $class, string $id, string $title): void {
     fake_post_queries([]);
-    $batch = new $class;
+    $batch = batch_of($class);
 
     expect($batch->id)->toBe($id)
         ->and($batch->title)->toBe($title);
@@ -54,7 +54,7 @@ describe('setup', function (): void {
         $store = [];
         stub_options($store);
 
-        $batch = new $class;
+        $batch = batch_of($class);
         $seen = [];
         while (($item = $batch->get_next_item()) !== false) {
             $seen[] = [$item->id, $item->get_value('id')];
@@ -84,7 +84,7 @@ describe('setup', function (): void {
     it('queues nothing when there are no posts, and still resets the post data once', function (string $class): void {
         fake_post_queries([]);
 
-        $batch = new $class;
+        $batch = batch_of($class);
 
         expect($batch->get_items_count())->toBe(0)
             ->and($GLOBALS['bp_reset_postdata_calls'])->toBe(1);
@@ -102,7 +102,7 @@ describe('setup', function (): void {
 describe('process', function (): void {
     it('reads nothing and returns true for an item with no post id', function (string $class): void {
         fake_post_queries([]);
-        $batch = new $class;
+        $batch = batch_of($class);
         Functions\expect('get_field')->never();
         Functions\expect('wp_update_post')->never();
 
@@ -112,7 +112,7 @@ describe('process', function (): void {
 
     it('writes the ACF content into the post body', function (string $class, string $id, string $title, string $type, string $field): void {
         fake_post_queries([]);
-        $batch = new $class;
+        $batch = batch_of($class);
         Functions\expect('get_field')->once()->with($field, 7)->andReturn('<p>Body</p>');
         Functions\expect('wp_update_post')->once()->with(['ID' => 7, 'post_content' => '<p>Body</p>']);
 
@@ -121,7 +121,7 @@ describe('process', function (): void {
 
     it('leaves the post alone when the ACF field is empty', function (string $class, string $id, string $title, string $type, string $field): void {
         fake_post_queries([]);
-        $batch = new $class;
+        $batch = batch_of($class);
         Functions\expect('get_field')->once()->with($field, 7)->andReturn('');
         Functions\expect('wp_update_post')->never();
 
@@ -132,7 +132,11 @@ describe('process', function (): void {
 it('does nothing in finish()', function (string $class): void {
     fake_post_queries([]);
 
-    expect((new $class)->finish())->toBeNull();
+    $batch = batch_of($class);
+
+    $batch->finish();
+
+    expect($batch->get_items_count())->toBe(0);
 })->with('content batches');
 
 it('registers one batch of its class with the processor when the init function runs', function (string $class, string $id, string $title, string $type, string $field, string $init): void {
