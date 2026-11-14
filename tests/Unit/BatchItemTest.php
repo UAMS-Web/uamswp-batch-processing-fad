@@ -34,7 +34,7 @@ it('returns the default for a key it does not hold', function (): void {
 
 it('returns the default when the data is not an array', function (mixed $data): void {
     expect((new WP_Batch_Item(1, $data))->get_value('name', 'fallback'))->toBe('fallback');
-})->with(['null' => [null], 'string' => ['name'], 'int' => [5]]);
+})->with(['null' => [null], 'string' => ['name'], 'int' => [5], 'plain object' => [new stdClass]]);
 
 it('reads from data that behaves as an array', function (): void {
     expect((new WP_Batch_Item(1, new ArrayObject(['name' => 'Ada'])))->get_value('name'))->toBe('Ada');
