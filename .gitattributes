@@ -1,0 +1,9 @@
+/* export-ignore
+/.* export-ignore
+/includes -export-ignore
+/fad -export-ignore
+/views -export-ignore
+/assets -export-ignore
+/examples -export-ignore
+/uamswp-batch-processing.php -export-ignore
+/LICENSE -export-ignore
