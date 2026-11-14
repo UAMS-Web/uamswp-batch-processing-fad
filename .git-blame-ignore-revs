@@ -1,0 +1,9 @@
+# Commits `git blame` should skip: whole-repository reformats whose every line
+# is a style change with no author of its own. One full 40-character commit hash
+# per line, with a comment above it saying what the commit was.
+#
+# `git blame` reads this file only when told to, once per clone:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+#
+# Adopt Rector, PHPStan and Pint (#58): the squash commit holding the Pint reformat of the whole tree
+2a461e3413ca48a992b3c32d11eb884f4038fe2d
