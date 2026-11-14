@@ -20,7 +20,9 @@ final class SingletonProbe
     }
 }
 
-final class SingletonPlain
+// Not final on purpose: the analyzer reads the empty init() of a final class as a call with no effect, which
+// is the very default this class exists to exercise.
+class SingletonPlain
 {
     use WP_BP_Singleton;
 }

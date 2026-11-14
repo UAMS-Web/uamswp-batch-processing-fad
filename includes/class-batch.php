@@ -58,7 +58,7 @@ abstract class WP_Batch
      *
      * @var WP_Batch_Item[]
      */
-    protected $items = [];
+    protected array $items = [];
 
     /**
      * Initialize
@@ -105,10 +105,6 @@ abstract class WP_Batch
      */
     protected function push($item)
     {
-        if (! is_array($this->items)) {
-            $this->items = [];
-        }
-
         $this->items[] = $item;
     }
 

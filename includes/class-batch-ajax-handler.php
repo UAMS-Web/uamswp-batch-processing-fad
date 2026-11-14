@@ -55,7 +55,6 @@ class WP_Batch_Processing_Ajax_Handler
             wp_send_json_error([
                 'message' => 'Permission denied.',
             ]);
-            exit();
         }
 
         // Check the capability. A nonce only proves intent; the batches page capability proves the right to run one.
@@ -63,7 +62,6 @@ class WP_Batch_Processing_Ajax_Handler
             wp_send_json_error([
                 'message' => 'Permission denied.',
             ], 403);
-            exit();
         }
 
         // Validate the batch id.
@@ -73,7 +71,6 @@ class WP_Batch_Processing_Ajax_Handler
             wp_send_json_error([
                 'message' => 'Invalid batch id',
             ]);
-            exit();
         }
 
         // Get the batch object
@@ -84,7 +81,6 @@ class WP_Batch_Processing_Ajax_Handler
             wp_send_json_error([
                 'message' => 'Invalid batch id',
             ]);
-            exit();
         }
 
         // Process the next item.
@@ -132,8 +128,6 @@ class WP_Batch_Processing_Ajax_Handler
                 ]);
             }
 
-            exit;
-
         }
     }
 
@@ -148,7 +142,6 @@ class WP_Batch_Processing_Ajax_Handler
             wp_send_json_error([
                 'message' => 'Permission denied.',
             ]);
-            exit;
         }
 
         // Check the capability.
@@ -156,7 +149,6 @@ class WP_Batch_Processing_Ajax_Handler
             wp_send_json_error([
                 'message' => 'Permission denied.',
             ], 403);
-            exit;
         }
 
         // Validate the batch id.
@@ -166,7 +158,6 @@ class WP_Batch_Processing_Ajax_Handler
             wp_send_json_error([
                 'message' => 'Invalid batch id',
             ]);
-            exit;
         }
 
         // Get the batch object
@@ -177,7 +168,6 @@ class WP_Batch_Processing_Ajax_Handler
             wp_send_json_error([
                 'message' => 'Invalid batch id',
             ]);
-            exit;
         }
 
         // Restart the batch.
