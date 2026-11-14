@@ -18,7 +18,10 @@
  * along with WP Batch Processing. If not, see <https://www.gnu.org/licenses/>.
  **********************************************************************/
 
-if ( ! defined( 'ABSPATH' ) ) {
+// The direct-access guard runs as the file loads, before any test, and dies when it fires, so no test can reach it
+// in this process; tests/Unit/LoadTimeTest.php pins it in a subprocess.
+// @pest-mutate-ignore: RemoveNot
+if ( ! defined( 'ABSPATH' ) ) { // @pest-mutate-ignore: IfNegated
 	die( 'Direct access is not allowed.' );
 }
 
@@ -40,6 +43,9 @@ class WP_Batch_Processor_Admin {
 	 * The hook suffix of the batches page, as returned by add_menu_page().
 	 * @var string
 	 */
+	// A property default is fixed as the class loads, before any test; AdminTest.php shows its effect (no script
+	// is enqueued before the menu is added).
+	// @pest-mutate-ignore: EmptyStringToNotEmpty
 	private $page_hook = '';
 
 	/**
@@ -166,4 +172,5 @@ class WP_Batch_Processor_Admin {
 	}
 }
 
-WP_Batch_Processor_Admin::get_instance();
+// Hooks the admin up as the file loads, before any test; tests/Unit/LoadTimeTest.php pins it in a subprocess.
+WP_Batch_Processor_Admin::get_instance(); // @pest-mutate-ignore: RemoveMethodCall
