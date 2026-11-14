@@ -83,6 +83,32 @@ function process_item(WP_Batch $batch, int|string $id, array $data): mixed
 }
 
 /**
+ * Runs a callback with an error handler that records every warning, and returns the messages.
+ *
+ * Some batches raise PHP warnings as they run (an undefined variable); failOnWarning would fail a
+ * test that triggered one unrecorded, so a test that pins such a warning asserts it from this list.
+ *
+ * @return array<int, string>
+ */
+function record_warnings(callable $callback): array
+{
+    $warnings = [];
+    set_error_handler(static function (int $level, string $message) use (&$warnings): bool {
+        $warnings[] = $message;
+
+        return true;
+    }, E_WARNING);
+
+    try {
+        $callback();
+    } finally {
+        restore_error_handler();
+    }
+
+    return $warnings;
+}
+
+/**
  * Backs get_option(), update_option() and delete_option() with an array, so a batch's processed ids
  * persist across calls inside one test the way they do in wp_options.
  *
