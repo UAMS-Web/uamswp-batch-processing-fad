@@ -73,7 +73,9 @@ class WP_Batch_Processor
     /**
      * Returns a batch from the registered ones.
      *
+     * The id is compared strictly, so an int never matches a batch whose id is the string of the same digits.
      *
+     * @param  int|string  $id
      * @return null|WP_Batch
      */
     public function get_batch($id)

@@ -53,7 +53,8 @@ class WP_Batch_Item
     /**
      * Return data value
      *
-     *
+     * @param  int|string  $key
+     * @param  mixed  $default
      * @return mixed|null
      */
     public function get_value($key, $default = null)

@@ -35,7 +35,8 @@ class WP_BP_Helper
     /**
      * Renders a view
      *
-     * @param  array  $data
+     * @param  string  $view
+     * @param  array<string, mixed>  $data
      */
     public static function render($view, $data = []): void
     {
