@@ -56,11 +56,31 @@ it('refuses new and clone from outside the class', function (): void {
     expect(fn () => clone $instance)->toThrow(Error::class);
 });
 
-it('warns, as the trait compiles, that its private __wakeup() is not public', function (): void {
-    // Pins what PHP 8.4 says about the trait today; the bootstrap captured it as the file loaded. The
-    // trait's private final methods draw a second, compile-time warning ("Private methods cannot be final
-    // as they are never overridden by other classes") that no handler can receive, so it is not asserted.
-    expect($GLOBALS['bp_load_warnings'])->toBe([
-        'The magic method WP_BP_Singleton::__wakeup() must have public visibility',
-    ]);
+it('refuses unserialize() of an instance', function (): void {
+    $serialized = serialize(SingletonPlain::get_instance());
+
+    expect(fn () => unserialize($serialized))->toThrow(Exception::class, 'Cannot unserialize a singleton.');
+});
+
+it('refuses to be built through the constructor, and says so as an Error', function (): void {
+    expect(fn () => new SingletonProbe)->toThrow(Error::class, 'private');
+    expect(SingletonProbe::$inits)->toBe(0);
+});
+
+it('compiles and loads on this PHP without a warning of any kind', function (): void {
+    // A compile-time warning reaches no error handler, so the file is loaded in a fresh process with every
+    // level reported and display on; anything PHP has to say about the trait is printed.
+    $process = proc_open(
+        [PHP_BINARY, '-d', 'error_reporting=-1', '-d', 'display_errors=1', '-r', 'define("ABSPATH", "/tmp/"); include '.var_export(dirname(__DIR__, 2).'/includes/class-bp-singleton.php', true).'; echo "loaded";'],
+        [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
+        $pipes
+    );
+    $output = (string) stream_get_contents($pipes[1]);
+    $errors = (string) stream_get_contents($pipes[2]);
+    fclose($pipes[1]);
+    fclose($pipes[2]);
+    proc_close($process);
+
+    expect($output)->toBe('loaded')
+        ->and($errors)->toBe('');
 });
