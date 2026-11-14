@@ -201,9 +201,9 @@ abstract class WP_Batch
     }
 
     /**
-     * Returns the percentage
+     * Returns the percentage, formatted to two decimals (number_format() returns a string)
      *
-     * @return float
+     * @return string
      */
     public function get_percentage()
     {
