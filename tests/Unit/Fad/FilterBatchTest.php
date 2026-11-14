@@ -4,10 +4,8 @@
  * FaD_Provider_Filter_Batch: builds a comma-separated list of a provider's expertise, condition and
  * treatment titles and stores it in the provider's filter field.
  *
- * process() builds each list with `.=` on a variable it never initializes, so it raises an
- * undefined-variable warning for each of the three lists (at the `.=` when the list has titles, at
- * the final concatenation when it is empty). These tests record those warnings and pin the output
- * as it stands.
+ * process() starts each list empty, so a provider with no titles of one kind contributes an empty
+ * segment and no warning is raised.
  *
  * @see fad/class-providers-filter-batch.php
  */
@@ -176,15 +174,17 @@ describe('process', function (): void {
         expect($result)->toBeTrue();
     });
 
-    it('raises an undefined-variable warning for each of the three lists', function (): void {
-        $result = run_filter_process([1], [], []);
+    it('raises no warning, whichever of the three lists are empty', function (array $expertises, array $conditions, array $treatments): void {
+        $result = run_filter_process($expertises, $conditions, $treatments);
 
-        expect($result['warnings'])->toBe([
-            'Undefined variable $expertise_list',
-            'Undefined variable $condition_list',
-            'Undefined variable $treatment_list',
-        ]);
-    });
+        expect($result['warnings'])->toBe([]);
+    })->with([
+        'all three' => [[1], [2], [3]],
+        'expertise only' => [[1], [], []],
+        'conditions only' => [[], [2], []],
+        'treatments only' => [[], [], [3]],
+        'none' => [[], [], []],
+    ]);
 });
 
 it('does nothing in finish()', function (): void {
