@@ -77,13 +77,21 @@ function next_item(WP_Batch $batch): WP_Batch_Item
  * Opens a subprocess, failing the test when the process cannot start.
  *
  * @param  list<string>  $command
- * @param  array<int, list<string>>  $descriptors
- * @param  array<int, resource>  $pipes  Filled with the pipes the descriptors open.
+ * @param  mixed  $stdout  Overwritten, whatever it held.
+ * @param  mixed  $stderr  Overwritten, whatever it held.
+ *
+ * @param-out resource $stdout  Set to the read end of the process's standard output.
+ * @param-out resource $stderr  Set to the read end of the process's standard error.
+ *
  * @return resource
  */
-function open_process(array $command, array $descriptors, ?array &$pipes)
+function open_process(array $command, &$stdout, &$stderr)
 {
-    return proc_open($command, $descriptors, $pipes) ?: throw new RuntimeException('proc_open failed.');
+    $process = proc_open($command, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes) ?: throw new RuntimeException('proc_open failed.');
+    $stdout = $pipes[1];
+    $stderr = $pipes[2];
+
+    return $process;
 }
 
 /**
