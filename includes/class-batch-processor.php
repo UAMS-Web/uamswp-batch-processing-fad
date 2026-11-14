@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /********************************************************************
  * Copyright (C) 2019 Darko Gjorgjijoski (https://darkog.com)
  *
@@ -42,8 +44,8 @@ class WP_Batch_Processor {
 	/**
 	 * Initializes the runner
 	 */
-	public function init() {
-		$this->batches = array();
+	public function init(): void {
+		$this->batches = [];
 	}
 
 
@@ -52,7 +54,7 @@ class WP_Batch_Processor {
 	 *
 	 * @param WP_Batch $batch
 	 */
-	public function register( $batch ) {
+	public function register( $batch ): void {
 		$this->batches[] = $batch;
 	}
 

@@ -36,12 +36,13 @@ class WP_BP_Helper {
 	 * @param $view
 	 * @param array $data
 	 */
-	public static function render( $view, $data = array() ) {
+	public static function render( $view, $data = [] ): void {
 		$path = WP_BP_PATH . 'views' . DIRECTORY_SEPARATOR . $view . '.php';
 		if ( file_exists( $path ) ) {
 			if ( ! empty( $data ) ) {
 				extract( $data );
 			}
+            
 			include( $path );
 		} else {
 			echo 'View ' . $view . ' not found';

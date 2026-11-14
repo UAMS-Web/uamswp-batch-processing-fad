@@ -45,19 +45,17 @@ if ( class_exists( 'WP_Batch' ) ) {
 		public $title = 'Update Expertise Regions';
 
 		/**
-		 * To setup the batch data use the push() method to add WP_Batch_Item instances to the queue.
-		 *
-		 * Note: If the operation of obtaining data is expensive, cache it to avoid slowdowns.
-		 *
-		 * @return void
-		 */
-		public function setup() {
+         * To setup the batch data use the push() method to add WP_Batch_Item instances to the queue.
+         *
+         * Note: If the operation of obtaining data is expensive, cache it to avoid slowdowns.
+         */
+        public function setup(): void {
 
 			$cpt = 'expertise'; // Define Custom Post Type (target)
 
 
 			// Get all Taxonomy
-			$args = array(
+			$args = [
 				'post_type' => $cpt,
                 'orderby' => 'title',
                 'order' => 'ASC',
@@ -68,7 +66,7 @@ if ( class_exists( 'WP_Batch' ) ) {
                 'cache_results'  => false,
                 // 'offset' => 0, // Change this to batch process
                 // 'p' => '10684'
-			);
+			];
 
 			$the_query =  new WP_Query( $args );
 
@@ -80,25 +78,24 @@ if ( class_exists( 'WP_Batch' ) ) {
 			if ( $the_query->have_posts() ) {
                 while ( $the_query->have_posts() ) {
                     $the_query->the_post();
-                    $this->push( new WP_Batch_Item( get_the_ID(), array( 'id' => get_the_ID() ) ) );
+                    $this->push( new WP_Batch_Item( get_the_ID(), [ 'id' => get_the_ID() ] ) );
                 }
             }
+
             wp_reset_postdata();
 		}
 
 		/**
-		 * Handles processing of batch item. One at a time.
-		 *
-		 * In order to work it correctly you must return values as follows:
-		 *
-		 * - TRUE - If the item was processed successfully.
-		 * - WP_Error instance - If there was an error. Add message to display it in the admin area.
-		 *
-		 * @param WP_Batch_Item $item
-		 *
-		 * @return bool|\WP_Error
-		 */
-		public function process( $item ) {
+         * Handles processing of batch item. One at a time.
+         *
+         * In order to work it correctly you must return values as follows:
+         *
+         * - TRUE - If the item was processed successfully.
+         * - WP_Error instance - If there was an error. Add message to display it in the admin area.
+         *
+         * @param WP_Batch_Item $item
+         */
+        public function process( $item ): bool {
 
             $p_id = $item->get_value( 'id' );
 
@@ -109,13 +106,14 @@ if ( class_exists( 'WP_Batch' ) ) {
 				$acf_field = 'location_expertise';
 				$items = get_field($acf_field, $p_id);
 				if ($items) {
-					$regions = array();
+					$regions = [];
 					foreach( $items as $item ):
 						$region = get_field( 'location_region', $item);
 						$regions[] = strval($region);
 						// break loop after first iteration = primary location
 						// break;
 					endforeach;
+
 					$regions = array_unique($regions);
 					update_field ('expertise_region', $regions, $p_id);
                 }
@@ -138,11 +136,10 @@ if ( class_exists( 'WP_Batch' ) ) {
 		}
 
 		/**
-		 * Called when specific process is finished (all items were processed).
-		 * This method can be overriden in the process class.
-		 * @return void
-		 */
-		public function finish() {
+         * Called when specific process is finished (all items were processed).
+         * This method can be overriden in the process class.
+         */
+        public function finish(): void {
 			// Do something after process is finished.
 			// You have $this->items, or other data you can set.
 		}
@@ -152,7 +149,7 @@ if ( class_exists( 'WP_Batch' ) ) {
 	/**
 	 * Initialize the batches.
 	 */
-	function expertise_region_batch_processing_init() {
+	function expertise_region_batch_processing_init(): void {
 		$batch = new FaD_Expertise_Region_Batch();
 		WP_Batch_Processor::get_instance()->register( $batch );
 	}

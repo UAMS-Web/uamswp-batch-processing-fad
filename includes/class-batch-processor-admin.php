@@ -52,37 +52,37 @@ class WP_Batch_Processor_Admin {
 	 * Kick-in the class
 	 */
 	protected function init() {
-		add_action( 'admin_menu', array( $this, 'admin_menu' ) );
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
-		add_action( 'init', array( $this, 'setup' ), 0 );
+		add_action( 'admin_menu', [ $this, 'admin_menu' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+		add_action( 'init', [ $this, 'setup' ], 0 );
 	}
 
 	/**
 	 * Init hook. Only run when it is on its own pages.
 	 */
-	public function setup() {
+	public function setup(): void {
 		if ( $this->is_batch_runner_screen() || $this->is_batch_runner_ajax() ) {
 			do_action( 'wp_batch_processing_init' );
 		}
 	}
 
 	/**
-	 * Enqueues admin scripts
-	 *
-	 * @param string $hook_suffix The hook suffix of the admin page being rendered.
-	 *
-	 * @return void
-	 */
-	public function enqueue_scripts( $hook_suffix = '' ) {
+     * Enqueues admin scripts
+     *
+     * @param string $hook_suffix The hook suffix of the admin page being rendered.
+     */
+    public function enqueue_scripts( $hook_suffix = '' ): void {
 
 		// Only print the runner (and its nonce) on the batches page itself, for a user who can open it.
 		// The $_GET check alone is not enough: any admin screen can carry page=dg-batches in its query string.
 		if ( '' === $this->page_hook || $hook_suffix !== $this->page_hook ) {
 			return;
 		}
+        
 		if ( ! current_user_can( self::CAPABILITY ) ) {
 			return;
 		}
+        
 		if ( ! $this->is_batch_runner_screen( 'view' ) ) {
 			return;
 		}
@@ -90,34 +90,32 @@ class WP_Batch_Processor_Admin {
 		wp_enqueue_script(
 			'wp-batch-processing',
 			WP_BP_URL . 'assets/processor.js',
-			array( 'jquery' ),
+			[ 'jquery' ],
 			filemtime( WP_BP_PATH . 'assets/processor.js' ),
 			true
 		);
-		wp_localize_script( 'wp-batch-processing', 'DgBatchRunner', array(
+		wp_localize_script( 'wp-batch-processing', 'DgBatchRunner', [
 			'ajax_url' => admin_url( 'admin-ajax.php' ),
 			'nonce'    => wp_create_nonce( 'wp-batch-processing' ),
-			'batch_id' => isset( $_GET['id'] ) ? $_GET['id'] : 0,
+			'batch_id' => $_GET['id'] ?? 0,
 			'delay'    => apply_filters( 'wp_batch_processing_delay', 0 ), // Set delay in seconds before processing the next item. Default 0. No delay.
-			'text'     => array(
+			'text'     => [
 				'processing' => __( 'Processing...', 'wp-batch-processing' ),
 				'start'      => __( 'Start', 'wp-batch-processing' ),
-			)
-		) );
+			]
+		] );
 	}
 
 	/**
-	 * Add menu items
-	 *
-	 * @return void
-	 */
-	public function admin_menu() {
+     * Add menu items
+     */
+    public function admin_menu(): void {
 
 		$this->page_hook = add_menu_page(
 			__( 'Manage Batches', 'wp-batch-processing' ),
 			__( 'Batches ', 'wp-batch-processing' ),
 			self::CAPABILITY, 'dg-batches',
-			array( $this, 'plugin_page' ),
+			[ $this, 'plugin_page' ],
 			'dashicons-grid-view', null
 		);
 
@@ -127,34 +125,28 @@ class WP_Batch_Processor_Admin {
 			__( 'Batches', 'wp-batch-processing' ),
 			self::CAPABILITY,
 			'dg-batches',
-			array( $this, 'plugin_page' )
+			[ $this, 'plugin_page' ]
 		);
 	}
 
 	/**
-	 * Handles the plugin page
-	 *
-	 * @return void
-	 */
-	public function plugin_page() {
-		$action = isset( $_GET['action'] ) ? $_GET['action'] : 'list';
-		$id     = isset( $_GET['id'] ) ? $_GET['id'] : 0;
-		switch ( $action ) {
-			case 'view':
-				$view = 'batch-view';
-				break;
-			default:
-				$view = 'batch-list';
-				break;
-		}
-		WP_BP_Helper::render( $view, array( 'id' => $id ) );
+     * Handles the plugin page
+     */
+    public function plugin_page(): void {
+		$action = $_GET['action'] ?? 'list';
+		$id     = $_GET['id'] ?? 0;
+        $view = match ($action) {
+            'view' => 'batch-view',
+            default => 'batch-list',
+        };
+        
+		WP_BP_Helper::render( $view, [ 'id' => $id ] );
 	}
 
 	/**
-	 * Returns true if the it is ajax action
-	 * @return bool
-	 */
-	private function is_batch_runner_ajax() {
+     * Returns true if the it is ajax action
+     */
+    private function is_batch_runner_ajax(): bool {
 		return isset( $_REQUEST['action'] ) && $_REQUEST['action'] === 'dg_process_next_batch_item' || isset( $_REQUEST['action'] ) && $_REQUEST['action'] === 'dg_restart_batch';
 	}
 

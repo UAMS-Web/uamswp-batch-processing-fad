@@ -14,6 +14,7 @@
 
 declare(strict_types=1);
 
+use function Brain\Monkey\Functions\when;
 use Brain\Monkey\Functions;
 
 beforeEach(function (): void {
@@ -148,9 +149,9 @@ describe('process', function (): void {
 
     it('updates each related post in turn', function (string $class, string $id, string $title, string $type, string $field, string $reverse, string $key): void {
         $batch = new $class;
-        Functions\when('get_field')->alias(fn (string $name, int $post, $format = true) => $name === $field ? [40, 41] : []);
+        when('get_field')->alias(fn (string $name, int $post, $format = true): array => $name === $field ? [40, 41] : []);
         $written = [];
-        Functions\when('update_field')->alias(function (string $name, array $value, int $post) use (&$written): void {
+        when('update_field')->alias(function (string $name, array $value, int $post) use (&$written): void {
             $written[] = [$name, $value, $post];
         });
 
@@ -161,10 +162,10 @@ describe('process', function (): void {
 
     it('raises no warning while it walks the related posts', function (string $class, string $id, string $title, string $type, string $field): void {
         $batch = new $class;
-        Functions\when('get_field')->alias(fn (string $name, int $post, $format = true) => $name === $field ? [40, 41] : []);
-        Functions\when('update_field')->justReturn(true);
+        when('get_field')->alias(fn (string $name, int $post, $format = true): array => $name === $field ? [40, 41] : []);
+        when('update_field')->justReturn(true);
 
-        $warnings = record_warnings(fn () => process_item($batch, 7, ['id' => 7]));
+        $warnings = record_warnings(fn (): mixed => process_item($batch, 7, ['id' => 7]));
 
         expect($warnings)->toBe([]);
     })->with('sync batches');
@@ -180,13 +181,13 @@ describe('process', function (): void {
 
     it('carries on to the next related post after skipping one', function (string $class, string $id, string $title, string $type, string $field, string $reverse, string $key): void {
         $batch = new $class;
-        Functions\when('get_field')->alias(fn (string $name, int $post, $format = true) => match (true) {
+        when('get_field')->alias(fn (string $name, int $post, $format = true): array => match (true) {
             $name === $field => [40, 41],
             $post === 40 => [5, 7],
             default => [],
         });
         $written = [];
-        Functions\when('update_field')->alias(function (string $name, array $value, int $post) use (&$written): void {
+        when('update_field')->alias(function (string $name, array $value, int $post) use (&$written): void {
             $written[] = $post;
         });
 

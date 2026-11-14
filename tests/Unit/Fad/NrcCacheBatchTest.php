@@ -9,6 +9,7 @@
 
 declare(strict_types=1);
 
+use function Brain\Monkey\Functions\when;
 use Brain\Monkey\Functions;
 
 // WordPress defines this; the batch multiplies it by 30 for the transient's lifetime.
@@ -103,24 +104,24 @@ describe('process', function (): void {
         expect(process_item($this->batch, 7, ['id' => 7]))->toBeTrue();
     });
 
-    it('fetches the NPI\'s profile and caches the body for 30 days on a miss', function (): void {
+    it("fetches the NPI's profile and caches the body for 30 days on a miss", function (): void {
         Functions\expect('get_field')->once()->with('physician_npi', 7)->andReturn('1234567890');
         Functions\expect('get_transient')->once()->with('nrc_backup_1234567890')->andReturn(false);
         Functions\expect('wp_remote_get')->once()
             ->with('https://transparency.nrchealth.com/widget/api/org-profile/uams/npi/1234567890/50')
             ->andReturn(['body' => 'raw']);
         Functions\expect('wp_remote_retrieve_body')->once()->with(['body' => 'raw'])->andReturn('{"reviews":[]}');
-        Functions\when('is_wp_error')->justReturn(false);
+        when('is_wp_error')->justReturn(false);
         Functions\expect('set_transient')->once()->with('nrc_backup_1234567890', '{"reviews":[]}', 30 * 86400);
 
         expect(process_item($this->batch, 7, ['id' => 7]))->toBeTrue();
     });
 
     it('caches nothing when the fetched body is an error', function (): void {
-        Functions\when('get_field')->justReturn('1234567890');
-        Functions\when('get_transient')->justReturn(false);
-        Functions\when('wp_remote_get')->justReturn(['body' => 'raw']);
-        Functions\when('wp_remote_retrieve_body')->justReturn(new WP_Error);
+        when('get_field')->justReturn('1234567890');
+        when('get_transient')->justReturn(false);
+        when('wp_remote_get')->justReturn(['body' => 'raw']);
+        when('wp_remote_retrieve_body')->justReturn(new WP_Error);
         Functions\expect('is_wp_error')->once()->andReturn(true);
         Functions\expect('set_transient')->never();
 
@@ -128,8 +129,9 @@ describe('process', function (): void {
     });
 
     it('leaves a cached response alone, whatever it holds', function (mixed $cached): void {
-        Functions\when('get_field')->justReturn('1234567890');
-        Functions\when('get_transient')->justReturn($cached);
+        when('get_field')->justReturn('1234567890');
+        when('get_transient')->justReturn($cached);
+
         Functions\expect('wp_remote_get')->never();
         Functions\expect('set_transient')->never();
 

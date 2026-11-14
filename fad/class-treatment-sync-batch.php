@@ -45,19 +45,17 @@ if ( class_exists( 'WP_Batch' ) ) {
 		public $title = 'Update Treatments Sync to Conditions';
 
 		/**
-		 * To setup the batch data use the push() method to add WP_Batch_Item instances to the queue.
-		 *
-		 * Note: If the operation of obtaining data is expensive, cache it to avoid slowdowns.
-		 *
-		 * @return void
-		 */
-		public function setup() {
+         * To setup the batch data use the push() method to add WP_Batch_Item instances to the queue.
+         *
+         * Note: If the operation of obtaining data is expensive, cache it to avoid slowdowns.
+         */
+        public function setup(): void {
 
 			$cpt = 'treatment'; // Define Custom Post Type (target)
 
 
 			// Get all Taxonomy
-			$args = array(
+			$args = [
 				'post_type' => $cpt,
                 'orderby' => 'title',
                 'order' => 'ASC',
@@ -67,32 +65,31 @@ if ( class_exists( 'WP_Batch' ) ) {
                 'update_post_term_cache' => false,
                 'cache_results'  => false,
                 // 'p' => '103291'
-			);
+			];
 
 			$the_query =  new WP_Query( $args );
 
 			if ( $the_query->have_posts() ) {
                 while ( $the_query->have_posts() ) {
                     $the_query->the_post();
-                    $this->push( new WP_Batch_Item( get_the_ID(), array( 'id' => get_the_ID() ) ) );
+                    $this->push( new WP_Batch_Item( get_the_ID(), [ 'id' => get_the_ID() ] ) );
                 }
             }
+
             wp_reset_postdata();               
 		}
 
 		/**
-		 * Handles processing of batch item. One at a time.
-		 *
-		 * In order to work it correctly you must return values as follows:
-		 *
-		 * - TRUE - If the item was processed successfully.
-		 * - WP_Error instance - If there was an error. Add message to display it in the admin area.
-		 *
-		 * @param WP_Batch_Item $item
-		 *
-		 * @return bool|\WP_Error
-		 */
-		public function process( $item ) {
+         * Handles processing of batch item. One at a time.
+         *
+         * In order to work it correctly you must return values as follows:
+         *
+         * - TRUE - If the item was processed successfully.
+         * - WP_Error instance - If there was an error. Add message to display it in the admin area.
+         *
+         * @param WP_Batch_Item $item
+         */
+        public function process( $item ): bool {
 
             $p_id = $item->get_value( 'id' );
 
@@ -105,18 +102,20 @@ if ( class_exists( 'WP_Batch' ) ) {
 					foreach( $value as $post_id2new ) {
                         // load existing related posts
                         $value2new = get_field('condition_treatments', $post_id2new, false);
-            
+
                         // allow for selected posts to not contain a value
                         if( empty($value2new) ) {
-                            $value2new = array();
+                            $value2new = [];
                         }
-            
+
                         // bail early if the current $p_id is already found in selected post's $value2new
-                        if( in_array($p_id, $value2new) ) continue;
+                        if (in_array($p_id, $value2new)) {
+                            continue;
+                        }
 
                         // append the current $p_id to the selected post's 'related_posts' value
                         $value2new[] = $p_id;
-            
+
                         // update the selected post's value (use field's key for performance)
                         update_field('field_condition_treatments', $value2new, $post_id2new);
                     }
@@ -140,11 +139,10 @@ if ( class_exists( 'WP_Batch' ) ) {
 		}
 
 		/**
-		 * Called when specific process is finished (all items were processed).
-		 * This method can be overriden in the process class.
-		 * @return void
-		 */
-		public function finish() {
+         * Called when specific process is finished (all items were processed).
+         * This method can be overriden in the process class.
+         */
+        public function finish(): void {
 			// Do something after process is finished.
 			// You have $this->items, or other data you can set.
 		}
@@ -154,7 +152,7 @@ if ( class_exists( 'WP_Batch' ) ) {
 	/**
 	 * Initialize the batches.
 	 */
-	function treatment_sync_batch_processing_init() {
+	function treatment_sync_batch_processing_init(): void {
 		$batch = new FaD_Treatment_Sync_Batch();
 		WP_Batch_Processor::get_instance()->register( $batch );
 	}

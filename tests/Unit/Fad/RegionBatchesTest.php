@@ -13,6 +13,7 @@
 
 declare(strict_types=1);
 
+use function Brain\Monkey\Functions\when;
 use Brain\Monkey\Functions;
 
 beforeEach(function (): void {
@@ -118,9 +119,9 @@ describe('process, for the batches that store every region', function (): void {
         expect(process_item($batch, 7, ['id' => 7]))->toBeTrue();
     })->with('all-region batches');
 
-    it('stores each location\'s region once, as strings', function (string $class, string $locations, string $target): void {
+    it("stores each location's region once, as strings", function (string $class, string $locations, string $target): void {
         $batch = new $class;
-        Functions\when('get_field')->alias(fn (string $name, int $post) => match ($name) {
+        when('get_field')->alias(fn (string $name, int $post): array|string|int => match ($name) {
             $locations => [11, 12, 13],
             'location_region' => match ($post) {
                 11 => 'North',
@@ -157,10 +158,11 @@ describe('process, for the provider batch', function (): void {
 
     it('stores only the region of the first location', function (): void {
         $lookups = [];
-        Functions\when('get_field')->alias(function (string $name, int $post) use (&$lookups) {
+        when('get_field')->alias(function (string $name, int $post) use (&$lookups): array|string {
             if ($name === 'physician_locations') {
                 return [11, 12];
             }
+
             $lookups[] = $post;
 
             return $post === 11 ? 'Primary' : 'Secondary';
