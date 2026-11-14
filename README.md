@@ -176,6 +176,12 @@ Rector, PHPStan (with the WordPress extension and stubs) and Pint from the share
 
 PHPStan starts at level 0, the highest level the code passes today, and rises one level per change. The two Advanced Custom Fields functions the batches call are declared for it in `phpstan-stubs.php`.
 
+`.git-blame-ignore-revs` lists the commit that reformatted the whole tree with Pint, so `git blame` skips it. Git reads the file only when told to, once per clone:
+
+```bash
+git config blame.ignoreRevsFile .git-blame-ignore-revs
+```
+
 ### Reading the runner's verdict
 
 The runner selects jobs from the branch's diff against `origin/master`, runs each on the local PHP toolchain, and ends with a summary block that names the validated commit and lists every job as `PASS`, `FAIL` or `SKIPPED`. A failing job fails the run: the exit status is non-zero exactly when the summary says a job failed, and the summary is what to read. Write the run to a file and read the block at the end:
