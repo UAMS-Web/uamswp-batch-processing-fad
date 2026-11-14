@@ -113,6 +113,10 @@ if ( class_exists( 'WP_Batch' ) ) {
 				$conditions = get_field('field_physician_conditions_cpt', $p_id);
 				$treatments = get_field('field_physician_treatments_cpt', $p_id);
 
+				// Each list starts empty, so a provider with no titles of one kind contributes an empty segment.
+				$expertise_list = '';
+				$condition_list = '';
+				$treatment_list = '';
 
 				if ( $expertises ) {
 					$i = 1;
