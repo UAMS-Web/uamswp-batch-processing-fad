@@ -1,5 +1,5 @@
 <?php
-/* @var mixed $id - The batch id */
+/** @var mixed $id - The batch id */
 ?>
 <div class="wrap">
     <div class="batch-single">
