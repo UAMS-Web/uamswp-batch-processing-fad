@@ -84,7 +84,7 @@ describe('column_default', function (): void {
 it('links the title to the batch view and adds a Manage row action', function (): void {
     when('admin_url')->alias(fn (string $path): string => 'https://example.test/wp-admin/'.$path);
     $batch = new FakeBatch('b');
-    $batch->id = 7;
+    $batch->id = '7';
     $batch->title = 'My batch';
 
     $url = 'https://example.test/wp-admin/admin.php?page=dg-batches&action=view&id=7';
