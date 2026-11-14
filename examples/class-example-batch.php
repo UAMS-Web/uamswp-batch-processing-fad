@@ -42,37 +42,33 @@ if ( class_exists( 'WP_Batch' ) ) {
 		public $title = 'Email Post Authors';
 
 		/**
-		 * To setup the batch data use the push() method to add WP_Batch_Item instances to the queue.
-		 *
-		 * Note: If the operation of obtaining data is expensive, cache it to avoid slowdowns.
-		 *
-		 * @return void
-		 */
-		public function setup() {
+         * To setup the batch data use the push() method to add WP_Batch_Item instances to the queue.
+         *
+         * Note: If the operation of obtaining data is expensive, cache it to avoid slowdowns.
+         */
+        public function setup(): void {
 
-			$users = get_users( array(
+			$users = get_users( [
 				'number' => '40',
 				'role'   => 'author',
-			) );
+			] );
 
 			foreach ( $users as $user ) {
-				$this->push( new WP_Batch_Item( $user->ID, array( 'author_id' => $user->ID ) ) );
+				$this->push( new WP_Batch_Item( $user->ID, [ 'author_id' => $user->ID ] ) );
 			}
 		}
 
 		/**
-		 * Handles processing of batch item. One at a time.
-		 *
-		 * In order to work it correctly you must return values as follows:
-		 *
-		 * - TRUE - If the item was processed successfully.
-		 * - WP_Error instance - If there was an error. Add message to display it in the admin area.
-		 *
-		 * @param WP_Batch_Item $item
-		 *
-		 * @return bool|\WP_Error
-		 */
-		public function process( $item ) {
+         * Handles processing of batch item. One at a time.
+         *
+         * In order to work it correctly you must return values as follows:
+         *
+         * - TRUE - If the item was processed successfully.
+         * - WP_Error instance - If there was an error. Add message to display it in the admin area.
+         *
+         * @param WP_Batch_Item $item
+         */
+        public function process( $item ): \WP_Error|true {
 
 			// Retrieve the custom data
 			$author_id = $item->get_value( 'author_id' );
@@ -90,11 +86,10 @@ if ( class_exists( 'WP_Batch' ) ) {
 		}
 
 		/**
-		 * Called when specific process is finished (all items were processed).
-		 * This method can be overriden in the process class.
-		 * @return void
-		 */
-		public function finish() {
+         * Called when specific process is finished (all items were processed).
+         * This method can be overriden in the process class.
+         */
+        public function finish(): void {
 			// Do something after process is finished.
 			// You have $this->items, or other data you can set.
 		}
@@ -104,7 +99,7 @@ if ( class_exists( 'WP_Batch' ) ) {
 	/**
 	 * Initialize the batches.
 	 */
-	function wp_batch_processing_init() {
+	function wp_batch_processing_init(): void {
 		$batch = new MY_Example_Batch();
 		WP_Batch_Processor::get_instance()->register( $batch );
 	}

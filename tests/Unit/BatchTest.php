@@ -173,9 +173,9 @@ it('leaves other batches alone when restarted', function (): void {
 it('does nothing in finish() unless a batch overrides it', function (): void {
     $plain = new class extends WP_Batch
     {
-        public function setup() {}
+        public function setup(): void {}
 
-        public function process($item)
+        public function process($item): bool
         {
             return true;
         }

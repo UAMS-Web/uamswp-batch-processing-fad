@@ -121,28 +121,24 @@ if (! class_exists('WP_List_Table')) {
     #[AllowDynamicProperties]
     class WP_List_Table
     {
-        /** @var array<string, mixed> */
-        protected $_args = [];
-
         /** @var array<int, mixed> */
         public $items = [];
 
         /** @var array<int, array<mixed>> */
         public $_column_headers = [];
 
-        /** @param array<string, mixed> $args */
-        public function __construct($args = [])
+        /** @param array<string, mixed> $_args */
+        public function __construct(protected $_args = [])
         {
-            $this->_args = $args;
         }
 
         /** @param array<string, string> $actions */
-        public function row_actions($actions)
+        public function row_actions($actions): string
         {
             return '<div class="row-actions">'.implode(' | ', $actions).'</div>';
         }
 
-        public function display()
+        public function display(): void
         {
             echo 'table:'.count($this->items);
         }

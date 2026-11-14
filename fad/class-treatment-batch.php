@@ -45,13 +45,11 @@ if ( class_exists( 'WP_Batch' ) ) {
 		public $title = 'Make Treatment Posts from Taxonomy';
 
 		/**
-		 * To setup the batch data use the push() method to add WP_Batch_Item instances to the queue.
-		 *
-		 * Note: If the operation of obtaining data is expensive, cache it to avoid slowdowns.
-		 *
-		 * @return void
-		 */
-		public function setup() {
+         * To setup the batch data use the push() method to add WP_Batch_Item instances to the queue.
+         *
+         * Note: If the operation of obtaining data is expensive, cache it to avoid slowdowns.
+         */
+        public function setup(): void {
 
 			$taxonomy = 'treatment'; //Define Custom Taxonomy (source)
 			// $post_type = 'condition'; // Define Custom Post Type (target)
@@ -60,7 +58,7 @@ if ( class_exists( 'WP_Batch' ) ) {
 			// $post_id_offset = 200000;
 
 			// Get all Taxonomy
-			$args = array(
+			$args = [
 				'taxonomy' => $taxonomy,
 				// 'parent' => 0, //In my case I only wanted top level terms returned
 				'hide_empty' => false,
@@ -70,7 +68,7 @@ if ( class_exists( 'WP_Batch' ) ) {
 				// 'offset' => 0, // Change this to batch process
 				// 'slug' => 'implantable-hearing-devices'
 				// 'count' => true
-			);
+			];
 
 			$terms = new WP_Term_Query( $args );
 
@@ -81,23 +79,21 @@ if ( class_exists( 'WP_Batch' ) ) {
 
 			foreach ( $terms->terms as $term ) {
 				// error_log("ID: ".print_r($term, true));
-				$this->push( new WP_Batch_Item( $term->term_id, array( 'id' => $term->term_id ) ) );
+				$this->push( new WP_Batch_Item( $term->term_id, [ 'id' => $term->term_id ] ) );
 			}
 		}
 
 		/**
-		 * Handles processing of batch item. One at a time.
-		 *
-		 * In order to work it correctly you must return values as follows:
-		 *
-		 * - TRUE - If the item was processed successfully.
-		 * - WP_Error instance - If there was an error. Add message to display it in the admin area.
-		 *
-		 * @param WP_Batch_Item $item
-		 *
-		 * @return bool|\WP_Error
-		 */
-		public function process( $item ) {
+         * Handles processing of batch item. One at a time.
+         *
+         * In order to work it correctly you must return values as follows:
+         *
+         * - TRUE - If the item was processed successfully.
+         * - WP_Error instance - If there was an error. Add message to display it in the admin area.
+         *
+         * @param WP_Batch_Item $item
+         */
+        public function process( $item ): bool {
 
 			$t_id = $item->get_value( 'id' );
 
@@ -120,11 +116,11 @@ if ( class_exists( 'WP_Batch' ) ) {
 
 				// WordPress term ids are integers, so the cast changes nothing a test can observe.
 				$new_id = (int)$t_id + $post_id_offset; // @pest-mutate-ignore: RemoveIntegerCast
-				
+
 				//Above finds all the data from Custom Taxonomy and associated metadata.
 				//We make a new post for each item, using same details from Taxonomy
 				if( null == get_page_by_title( $name ) ) { // If that post doesn't exist of course.
-					$new_post = array(
+					$new_post = [
 						'import_id' => $new_id,
 						'post_title' => $name,
 						'post_content' => $content, //Use Taxonomy description for Post Content
@@ -132,11 +128,11 @@ if ( class_exists( 'WP_Batch' ) ) {
 						'post_name' => $slug,
 						'post_status' => 'publish',
 						'post_type' => $post_type,
-						
-					);
+
+					];
 					//Insert post
 					$post_id = wp_insert_post( $new_post );
-					
+
 					//Insert meta where it exists. Note that my meta is stored like so: http://pippinsplugins.com/adding-custom-meta-fields-to-taxonomies/
 					// if (!empty($term_meta['artist_showcase_meta'])) : update_post_meta ($post_id, '_cmb_showcase', $term_meta['artist_showcase_meta']); endif;
 					$meta = get_term_meta($t_id);
@@ -146,9 +142,11 @@ if ( class_exists( 'WP_Batch' ) ) {
 							if (is_serialized($v)) {
 								$v = unserialize($v);
 							}
+
 							update_post_meta ( $post_id, $key, $v );
 						}
 					}
+
 					// Custom Fields
 					// Custom Field Name to update
 					$acf_field = 'treatment_procedure_conditions';
@@ -158,11 +156,12 @@ if ( class_exists( 'WP_Batch' ) ) {
 					$acf_offset = 100000;
 					$items = get_field($acf_field, $term);
 					if ($items) {
-						$items_cpt = array();
+						$items_cpt = [];
 						foreach( $items as $item ):
 							$item_id = intval($item) + $acf_offset;
 							$items_cpt[] = strval($item_id);
 						endforeach;
+
 						update_post_meta ( $post_id, $acf_field, $items_cpt );
 					}
 
@@ -186,11 +185,10 @@ if ( class_exists( 'WP_Batch' ) ) {
 		}
 
 		/**
-		 * Called when specific process is finished (all items were processed).
-		 * This method can be overriden in the process class.
-		 * @return void
-		 */
-		public function finish() {
+         * Called when specific process is finished (all items were processed).
+         * This method can be overriden in the process class.
+         */
+        public function finish(): void {
 			// Do something after process is finished.
 			// You have $this->items, or other data you can set.
 		}
@@ -200,7 +198,7 @@ if ( class_exists( 'WP_Batch' ) ) {
 	/**
 	 * Initialize the batches.
 	 */
-	function treatment_batch_processing_init() {
+	function treatment_batch_processing_init(): void {
 		$batch = new FaD_Treatment_Batch();
 		WP_Batch_Processor::get_instance()->register( $batch );
 	}

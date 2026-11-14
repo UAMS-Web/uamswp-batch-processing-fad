@@ -53,7 +53,7 @@ abstract class WP_Batch {
 	 * Data store of batch items
 	 * @var WP_Batch_Item[]
 	 */
-	protected $items = array();
+	protected $items = [];
 
 	/**
 	 * Initialize
@@ -99,8 +99,9 @@ abstract class WP_Batch {
 	 */
 	protected function push( $item ) {
 		if ( ! is_array( $this->items ) ) {
-			$this->items = array();
+			$this->items = [];
 		}
+        
 		$this->items[] = $item;
 	}
 
@@ -155,9 +156,7 @@ abstract class WP_Batch {
 	 * @return array
 	 */
 	public function get_processed_items() {
-		$processed = get_option( $this->get_db_identifier(), array() );
-
-		return $processed;
+		return get_option( $this->get_db_identifier(), [] );
 	}
 
 	/**
@@ -175,7 +174,7 @@ abstract class WP_Batch {
 	 */
 	public function mark_as_processed( $id ) {
 		$processed = $this->get_processed_items();
-		array_push( $processed, $id );
+		$processed[] = $id;
 		$processed = array_unique( $processed );
 		update_option( $this->get_db_identifier(), $processed );
 	}

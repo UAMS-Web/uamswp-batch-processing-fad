@@ -35,9 +35,7 @@ trait WP_BP_Singleton {
 	 * Returns the current instance
 	 */
 	final public static function get_instance() {
-		return isset( static::$instance )
-			? static::$instance
-			: static::$instance = new static;
+		return static::$instance ?? static::$instance = new static;
 	}
 
 	/**

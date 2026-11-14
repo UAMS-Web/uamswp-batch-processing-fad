@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /********************************************************************
  * Copyright (C) 2019 Darko Gjorgjijoski (https://darkog.com)
  *
@@ -31,37 +33,34 @@ if ( ! defined( 'ABSPATH' ) ) { // @pest-mutate-ignore: IfNegated
 class WP_Batch_Item {
 
 	/**
-	 * Unique identifier of the batch item
-	 * @var int
-	 */
-	public $id;
+     * WP_Batch_Item constructor
+     *
+     * @param $id
+     * @param $data
+     * @param int $id
+     * @param mixed $data
+     */
+    public function __construct(
+        /**
+         * Unique identifier of the batch item
+         */
+        public $id,
+        /**
+         * Additional data for the item
+         */
+        public $data = null
+    )
+    {
+    }
 
 	/**
-	 * Additional data for the item
-	 * @var mixed
-	 */
-	public $data;
-
-	/**
-	 * WP_Batch_Item constructor
-	 *
-	 * @param $id
-	 * @param $data
-	 */
-	public function __construct($id, $data = null) {
-		$this->id = $id;
-		$this->data = $data;
-	}
-
-	/**
-	 * Return data value
-	 *
-	 * @param $key
-	 * @param null $default
-	 *
-	 * @return mixed|null
-	 */
-	public function get_value($key, $default = null) {
-		return isset($this->data[$key]) ? $this->data[$key] : $default;
+     * Return data value
+     *
+     * @param $key
+     *
+     * @return mixed|null
+     */
+    public function get_value($key, $default = null) {
+		return $this->data[$key] ?? $default;
 	}
 }

@@ -12,6 +12,7 @@
 
 declare(strict_types=1);
 
+use function Brain\Monkey\Functions\when;
 use Brain\Monkey\Functions;
 
 beforeEach(function (): void {
@@ -57,11 +58,11 @@ dataset('term batches', [
  */
 function stub_term(object $term, array $fields = [], array $meta = [], mixed $existingPage = null): void
 {
-    Functions\when('get_term_by')->justReturn($term);
-    Functions\when('get_field')->alias(fn (string $name) => $fields[$name] ?? false);
-    Functions\when('get_page_by_title')->justReturn($existingPage);
-    Functions\when('get_term_meta')->justReturn($meta);
-    Functions\when('is_serialized')->alias(fn ($value): bool => is_string($value) && str_starts_with($value, 'a:'));
+    when('get_term_by')->justReturn($term);
+    when('get_field')->alias(fn (string $name) => $fields[$name] ?? false);
+    when('get_page_by_title')->justReturn($existingPage);
+    when('get_term_meta')->justReturn($meta);
+    when('is_serialized')->alias(fn ($value): bool => is_string($value) && str_starts_with($value, 'a:'));
 }
 
 it('carries its batch id and title', function (string $class, string $id, string $title): void {
@@ -115,11 +116,12 @@ describe('process', function (): void {
             ->and(process_item($batch, 1, ['id' => 0]))->toBeTrue();
     })->with('term batches');
 
-    it('inserts nothing when a post with the term\'s name already exists', function (string $class, string $id, string $title, string $taxonomy): void {
+    it("inserts nothing when a post with the term's name already exists", function (string $class, string $id, string $title, string $taxonomy): void {
         $batch = new $class;
         Functions\expect('get_term_by')->once()->with('id', 7, $taxonomy)->andReturn($this->term);
-        Functions\when('get_field')->justReturn(false);
-        Functions\when('get_page_by_title')->justReturn((object) ['ID' => 1]);
+        when('get_field')->justReturn(false);
+        when('get_page_by_title')->justReturn((object) ['ID' => 1]);
+
         Functions\expect('wp_insert_post')->never();
         Functions\expect('update_post_meta')->never();
 
@@ -146,9 +148,9 @@ describe('process', function (): void {
         $batch = new $class;
         $log = tempnam(sys_get_temp_dir(), 'bp-log');
         $previous = ini_set('error_log', $log);
-        Functions\when('get_term_by')->justReturn($this->term);
-        Functions\when('get_field')->justReturn(false);
-        Functions\when('get_page_by_title')->justReturn((object) ['ID' => 1]);
+        when('get_term_by')->justReturn($this->term);
+        when('get_field')->justReturn(false);
+        when('get_page_by_title')->justReturn((object) ['ID' => 1]);
 
         try {
             process_item($batch, 7, ['id' => 7]);
@@ -169,10 +171,10 @@ describe('process', function (): void {
         process_item($batch, 7, ['id' => 7]);
     })->with('term batches');
 
-    it('looks the post up by the term\'s name', function (string $class): void {
+    it("looks the post up by the term's name", function (string $class): void {
         $batch = new $class;
-        Functions\when('get_term_by')->justReturn($this->term);
-        Functions\when('get_field')->justReturn(false);
+        when('get_term_by')->justReturn($this->term);
+        when('get_field')->justReturn(false);
         Functions\expect('get_page_by_title')->once()->with('Asthma')->andReturn((object) ['ID' => 1]);
 
         process_item($batch, 7, ['id' => 7]);
@@ -181,15 +183,15 @@ describe('process', function (): void {
     it('copies each term meta value onto the new post, unserializing a serialized one', function (string $class): void {
         $batch = new $class;
         stub_term($this->term, [], ['color' => ['red', 'ignored'], 'size' => [serialize(['a' => 1])]]);
-        Functions\when('wp_insert_post')->justReturn(500);
+        when('wp_insert_post')->justReturn(500);
         $metaRequests = [];
-        Functions\when('get_term_meta')->alias(function (int $term) use (&$metaRequests): array {
+        when('get_term_meta')->alias(function (int $term) use (&$metaRequests): array {
             $metaRequests[] = $term;
 
             return ['color' => ['red', 'ignored'], 'size' => [serialize(['a' => 1])]];
         });
         $copied = [];
-        Functions\when('update_post_meta')->alias(function (int $post, string $key, $value) use (&$copied): void {
+        when('update_post_meta')->alias(function (int $post, string $key, $value) use (&$copied): void {
             $copied[] = [$post, $key, $value];
         });
 
@@ -202,7 +204,7 @@ describe('process', function (): void {
     it('copies no meta when the term has none', function (string $class): void {
         $batch = new $class;
         stub_term($this->term);
-        Functions\when('wp_insert_post')->justReturn(500);
+        when('wp_insert_post')->justReturn(500);
         Functions\expect('update_post_meta')->never();
 
         process_item($batch, 7, ['id' => 7]);
@@ -211,7 +213,7 @@ describe('process', function (): void {
     it('stores the related ids of the other type, offset and as strings', function (string $class, string $id, string $title, string $taxonomy, int $offset, string $contentField, string $excerptField, string $relationField, int $relationOffset): void {
         $batch = new $class;
         stub_term($this->term, [$relationField => ['5', 12]]);
-        Functions\when('wp_insert_post')->justReturn(500);
+        when('wp_insert_post')->justReturn(500);
         Functions\expect('update_post_meta')->once()->with(500, $relationField, [(string) (5 + $relationOffset), (string) (12 + $relationOffset)]);
 
         expect(process_item($batch, 7, ['id' => 7]))->toBeTrue();
@@ -219,10 +221,10 @@ describe('process', function (): void {
 
     it('reads the relations from the term', function (string $class, string $id, string $title, string $taxonomy, int $offset, string $contentField, string $excerptField, string $relationField): void {
         $batch = new $class;
-        Functions\when('get_term_by')->justReturn($this->term);
-        Functions\when('get_page_by_title')->justReturn(null);
-        Functions\when('get_term_meta')->justReturn([]);
-        Functions\when('wp_insert_post')->justReturn(500);
+        when('get_term_by')->justReturn($this->term);
+        when('get_page_by_title')->justReturn();
+        when('get_term_meta')->justReturn([]);
+        when('wp_insert_post')->justReturn(500);
         Functions\expect('get_field')->once()->with($contentField, $this->term)->andReturn('');
         Functions\expect('get_field')->once()->with($excerptField, $this->term)->andReturn('');
         Functions\expect('get_field')->once()->with($relationField, $this->term)->andReturn(false);

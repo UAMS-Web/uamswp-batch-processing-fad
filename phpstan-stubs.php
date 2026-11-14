@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Declarations PHPStan reads and never runs, for functions the plugin calls that its
  * stubs do not cover.
@@ -23,9 +25,8 @@ function get_field($selector, $post_id = false, $format_value = true)
  * @param  string  $selector
  * @param  mixed  $value
  * @param  int|string|false  $post_id
- * @return bool
  */
-function update_field($selector, $value, $post_id = false)
+function update_field($selector, $value, $post_id = false): bool
 {
     return true;
 }

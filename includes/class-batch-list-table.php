@@ -44,24 +44,22 @@ class WP_BP_List_Table extends \WP_List_Table {
 	 */
 	public $page_status;
 
-	function __construct() {
-		parent::__construct( array(
+	public function __construct() {
+		parent::__construct( [
 			'singular' => 'batch',
 			'plural'   => 'batches',
 			'ajax'     => false
-		) );
+		] );
 	}
 
-	function get_table_classes() {
-		return array( 'widefat', 'fixed', 'striped', $this->_args['plural'] );
+	public function get_table_classes(): array {
+		return [ 'widefat', 'fixed', 'striped', $this->_args['plural'] ];
 	}
 
 	/**
-	 * Message to show if no designation found
-	 *
-	 * @return void
-	 */
-	function no_items() {
+     * Message to show if no designation found
+     */
+    public function no_items(): void {
 		_e( 'No batches found. Read the documentation on the plugin github page to see how to register ones.', 'wp-batch-processing' );
 	}
 
@@ -73,97 +71,72 @@ class WP_BP_List_Table extends \WP_List_Table {
 	 *
 	 * @return string
 	 */
-	function column_default( $item, $column_name ) {
+	public function column_default( $item, $column_name ) {
 
-		switch ( $column_name ) {
-			case 'title':
-				return $item->title;
-
-			case 'total_processed':
-				return $item->get_processed_count();
-
-			case 'total_items':
-				return $item->get_items_count();
-
-			default:
-				return isset( $item->$column_name ) ? $item->$column_name : '';
-		}
+		return match ($column_name) {
+            'title' => $item->title,
+            'total_processed' => $item->get_processed_count(),
+            'total_items' => $item->get_items_count(),
+            default => $item->$column_name ?? '',
+        };
 	}
 
 	/**
-	 * Get the column names
-	 *
-	 * @return array
-	 */
-	function get_columns() {
-		$columns = array(
+     * Get the column names
+     */
+    public function get_columns(): array {
+		return [
 			'title'           => __( 'Title', 'wp-batch-processing' ),
 			'total_processed' => __( 'Total Processed', 'wp-batch-processing' ),
 			'total_items'     => __( 'Total Items', 'wp-batch-processing' ),
-		);
-
-		return $columns;
+		];
 	}
 
 	/**
-	 * Render the designation name column
-	 *
-	 * @param object $item
-	 *
-	 * @return string
-	 */
-	function column_title( $item ) {
+     * Render the designation name column
+     *
+     * @param object $item
+     */
+    public function column_title( $item ): string {
 
-		$actions         = array();
+		$actions         = [];
 		$actions['edit'] = sprintf( '<a href="%s" data-id="%d" title="%s">%s</a>', admin_url( 'admin.php?page=dg-batches&action=view&id=' . $item->id ), $item->id, __( 'Manage Batch', 'wp-batch-processing' ), __( 'Manage', 'wp-batch-processing' ) );
 
 		return sprintf( '<a href="%1$s"><strong>%2$s</strong></a> %3$s', admin_url( 'admin.php?page=dg-batches&action=view&id=' . $item->id ), $item->title, $this->row_actions( $actions ) );
 	}
 
 	/**
-	 * Get sortable columns
-	 *
-	 * @return array
-	 */
-	function get_sortable_columns() {
-		$sortable_columns = array();
-
-		return $sortable_columns;
+     * Get sortable columns
+     */
+    public function get_sortable_columns(): array {
+		return [];
 	}
 
 	/**
-	 * Set the bulk actions
-	 *
-	 * @return array
-	 */
-	function get_bulk_actions() {
-		$actions = array();
-
-		return $actions;
+     * Set the bulk actions
+     */
+    public function get_bulk_actions(): array {
+		return [];
 	}
 
 	/**
-	 * Render the checkbox column
-	 *
-	 * @param object $item
-	 *
-	 * @return string
-	 */
-	function column_cb( $item ) {
+     * Render the checkbox column
+     *
+     * @param object $item
+     */
+    public function column_cb( $item ): string {
 		return '';
 	}
 
 	/**
-	 * Prepare the class items
-	 *
-	 * @return void
-	 */
-	function prepare_items() {
+     * Prepare the class items
+     */
+    public function prepare_items(): void {
 
 		$columns               = $this->get_columns();
-		$hidden                = array();
+		$hidden                = [];
 		$sortable              = $this->get_sortable_columns();
-		$this->_column_headers = array( $columns, $hidden, $sortable );
+		$this->_column_headers = [ $columns, $hidden, $sortable ];
 		$this->page_status     = isset( $_GET['status'] ) ? sanitize_text_field( $_GET['status'] ) : '2';
 
 		$this->items = WP_Batch_Processor::get_instance()->get_batches();

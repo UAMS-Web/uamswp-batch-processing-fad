@@ -9,9 +9,6 @@ declare(strict_types=1);
 
 final class FakeBatch extends WP_Batch
 {
-    /** @var array<int, int|string> */
-    private array $seed;
-
     /** @var array<int, int|string> The ids process() was called with, in order. */
     public array $processedIds = [];
 
@@ -21,16 +18,15 @@ final class FakeBatch extends WP_Batch
     /** How many times finish() ran. */
     public int $finishCount = 0;
 
-    /** @param array<int, int|string> $ids */
-    public function __construct(string $id = 'fake', array $ids = [])
+    /** @param array<int, int|string> $seed */
+    public function __construct(string $id = 'fake', private array $seed = [])
     {
         $this->id = $id;
-        $this->seed = $ids;
 
         parent::__construct();
     }
 
-    public function setup()
+    public function setup(): void
     {
         foreach ($this->seed as $id) {
             $this->push(new WP_Batch_Item($id, ['n' => $id]));
@@ -44,7 +40,7 @@ final class FakeBatch extends WP_Batch
         return $this->result;
     }
 
-    public function finish()
+    public function finish(): void
     {
         $this->finishCount++;
     }
