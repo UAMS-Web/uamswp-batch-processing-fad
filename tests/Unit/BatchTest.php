@@ -12,6 +12,7 @@
 declare(strict_types=1);
 
 beforeEach(function (): void {
+    /** @var UnitTestCase $this */
     $this->store = [];
     stub_options($this->store);
 });
@@ -53,6 +54,7 @@ it('reports no processed items when nothing is stored', function (): void {
 });
 
 it('reads the processed ids from the batch option', function (): void {
+    /** @var UnitTestCase $this */
     $batch = new FakeBatch('b', [1, 2]);
     $this->store['batch_b_processed'] = [1];
 
@@ -61,6 +63,7 @@ it('reads the processed ids from the batch option', function (): void {
 });
 
 it('records a processed id under the batch option', function (): void {
+    /** @var UnitTestCase $this */
     $batch = new FakeBatch('b', [1, 2]);
 
     $batch->mark_as_processed(1);
@@ -69,6 +72,7 @@ it('records a processed id under the batch option', function (): void {
 });
 
 it('records each id once however often it is marked', function (): void {
+    /** @var UnitTestCase $this */
     $batch = new FakeBatch('b', [1, 2]);
 
     $batch->mark_as_processed(1);
@@ -151,6 +155,7 @@ it('reports zero percent for a batch with no items', function (): void {
 });
 
 it('forgets what was processed when restarted', function (): void {
+    /** @var UnitTestCase $this */
     $batch = new FakeBatch('b', [1, 2]);
     $batch->mark_as_processed(1);
 
@@ -161,6 +166,7 @@ it('forgets what was processed when restarted', function (): void {
 });
 
 it('leaves other batches alone when restarted', function (): void {
+    /** @var UnitTestCase $this */
     $batch = new FakeBatch('b', [1]);
     $this->store['batch_other_processed'] = [5];
     $batch->mark_as_processed(1);

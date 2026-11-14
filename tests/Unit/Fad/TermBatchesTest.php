@@ -105,6 +105,7 @@ describe('setup', function (): void {
 
 describe('process', function (): void {
     beforeEach(function (): void {
+        /** @var UnitTestCase $this */
         $this->term = (object) ['name' => 'Asthma', 'slug' => 'asthma'];
     });
 
@@ -118,6 +119,7 @@ describe('process', function (): void {
     })->with('term batches');
 
     it("inserts nothing when a post with the term's name already exists", function (string $class, string $id, string $title, string $taxonomy): void {
+        /** @var UnitTestCase $this */
         $batch = new $class;
         Functions\expect('get_term_by')->once()->with('id', 7, $taxonomy)->andReturn($this->term);
         when('get_field')->justReturn(false);
@@ -130,6 +132,7 @@ describe('process', function (): void {
     })->with('term batches');
 
     it('inserts a published post named after the term, at the term id plus the offset', function (string $class, string $id, string $title, string $taxonomy, int $offset, string $contentField, string $excerptField): void {
+        /** @var UnitTestCase $this */
         $batch = new $class;
         stub_term($this->term, [$contentField => '<p>Body</p>', $excerptField => 'Short']);
         Functions\expect('wp_insert_post')->once()->with([
@@ -146,6 +149,7 @@ describe('process', function (): void {
     })->with('term batches');
 
     it('logs the term id it is about to process', function (string $class): void {
+        /** @var UnitTestCase $this */
         $batch = new $class;
         $log = tempnam(sys_get_temp_dir(), 'bp-log');
         $previous = ini_set('error_log', $log);
@@ -165,6 +169,7 @@ describe('process', function (): void {
     })->with('term batches');
 
     it('treats any falsy but non-null lookup result as no existing post', function (string $class, string $id, string $title, string $taxonomy): void {
+        /** @var UnitTestCase $this */
         $batch = new $class;
         stub_term($this->term, [], [], false);
         Functions\expect('wp_insert_post')->once()->andReturn(500);
@@ -173,6 +178,7 @@ describe('process', function (): void {
     })->with('term batches');
 
     it("looks the post up by the term's name", function (string $class): void {
+        /** @var UnitTestCase $this */
         $batch = new $class;
         when('get_term_by')->justReturn($this->term);
         when('get_field')->justReturn(false);
@@ -182,6 +188,7 @@ describe('process', function (): void {
     })->with('term batches');
 
     it('copies each term meta value onto the new post, unserializing a serialized one', function (string $class): void {
+        /** @var UnitTestCase $this */
         $batch = new $class;
         stub_term($this->term, [], ['color' => ['red', 'ignored'], 'size' => [serialize(['a' => 1])]]);
         when('wp_insert_post')->justReturn(500);
@@ -203,6 +210,7 @@ describe('process', function (): void {
     })->with('term batches');
 
     it('copies no meta when the term has none', function (string $class): void {
+        /** @var UnitTestCase $this */
         $batch = new $class;
         stub_term($this->term);
         when('wp_insert_post')->justReturn(500);
@@ -212,6 +220,7 @@ describe('process', function (): void {
     })->with('term batches');
 
     it('stores the related ids of the other type, offset and as strings', function (string $class, string $id, string $title, string $taxonomy, int $offset, string $contentField, string $excerptField, string $relationField, int $relationOffset): void {
+        /** @var UnitTestCase $this */
         $batch = new $class;
         stub_term($this->term, [$relationField => ['5', 12]]);
         when('wp_insert_post')->justReturn(500);
@@ -221,6 +230,7 @@ describe('process', function (): void {
     })->with('term batches');
 
     it('reads the relations from the term', function (string $class, string $id, string $title, string $taxonomy, int $offset, string $contentField, string $excerptField, string $relationField): void {
+        /** @var UnitTestCase $this */
         $batch = new $class;
         when('get_term_by')->justReturn($this->term);
         when('get_page_by_title')->justReturn();

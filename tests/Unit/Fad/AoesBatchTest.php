@@ -83,11 +83,13 @@ describe('setup', function (): void {
 
 describe('process', function (): void {
     beforeEach(function (): void {
+        /** @var UnitTestCase $this */
         fake_post_queries([]);
         $this->batch = new FaD_AoEs_Batch;
     });
 
     it('reads nothing and returns true for an item with no post id', function (): void {
+        /** @var UnitTestCase $this */
         Functions\expect('get_field')->never();
         Functions\expect('update_field')->never();
 
@@ -96,6 +98,7 @@ describe('process', function (): void {
     });
 
     it('offsets each related condition id by 100000 and stores the strings', function (): void {
+        /** @var UnitTestCase $this */
         Functions\expect('get_field')->once()->with('expertise_conditions', 7)->andReturn(['5', 12]);
         Functions\expect('get_field')->once()->with('expertise_treatments', 7)->andReturn(false);
         Functions\expect('update_field')->once()->with('expertise_conditions_cpt', ['100005', '100012'], 7);
@@ -104,6 +107,7 @@ describe('process', function (): void {
     });
 
     it('offsets each related treatment id by 200000 and stores the strings', function (): void {
+        /** @var UnitTestCase $this */
         Functions\expect('get_field')->once()->with('expertise_conditions', 7)->andReturn([]);
         Functions\expect('get_field')->once()->with('expertise_treatments', 7)->andReturn(['3', 4]);
         Functions\expect('update_field')->once()->with('expertise_treatments_cpt', ['200003', '200004'], 7);
@@ -112,6 +116,7 @@ describe('process', function (): void {
     });
 
     it('updates both fields when both have relations', function (): void {
+        /** @var UnitTestCase $this */
         when('get_field')->alias(fn (string $field, int $id): array => $field === 'expertise_conditions' ? [1] : [2]);
         Functions\expect('update_field')->once()->with('expertise_conditions_cpt', ['100001'], 9);
         Functions\expect('update_field')->once()->with('expertise_treatments_cpt', ['200002'], 9);
@@ -120,6 +125,7 @@ describe('process', function (): void {
     });
 
     it('updates nothing when neither field has relations', function (): void {
+        /** @var UnitTestCase $this */
         when('get_field')->justReturn(false);
         Functions\expect('update_field')->never();
 

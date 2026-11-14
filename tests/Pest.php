@@ -9,42 +9,16 @@
 
 declare(strict_types=1);
 
-use Brain\Monkey\Functions;
-
-use function Brain\Monkey\Functions\stubTranslationFunctions;
 use function Brain\Monkey\Functions\when;
-use function Brain\Monkey\setUp;
-use function Brain\Monkey\tearDown;
 
 /*
- * Brain Monkey around every test.
- *
- * setUp() defines WordPress' hook functions and arms Patchwork; tearDown()
- * verifies every expectation the test set (a `->once()` that never happened
- * fails here) and removes every mock, so nothing leaks into the next test.
- *
- * The assertion count: Brain Monkey's expectations are Mockery expectations,
- * which PHPUnit does not count. Without adding them, a test whose only check is
- * `Functions\expect(...)->once()` reports as risky, and failOnRisky fails it.
+ * Every Unit test runs on UnitTestCase, which wraps it in Brain Monkey
+ * (tests/Support/UnitTestCase.php). Pest reads this file before PHPUnit's bootstrap runs, and the
+ * repository has no autoload-dev map, so the file is loaded here.
  */
-uses()
-    ->beforeEach(function (): void {
-        setUp();
+require_once __DIR__.'/Support/UnitTestCase.php';
 
-        // __(), _e(), esc_html__() and the rest return or echo their text unchanged.
-        stubTranslationFunctions();
-
-        // No queued query responses or recorded query arguments carry over from the last test.
-        WP_Query::reset();
-        WP_Term_Query::reset();
-        $GLOBALS['bp_reset_postdata_calls'] = 0;
-    })
-    ->afterEach(function (): void {
-        $this->addToAssertionCount(Mockery::getContainer()->mockery_getExpectationCount());
-
-        tearDown();
-    })
-    ->in('Unit');
+pest()->extend(UnitTestCase::class)->in('Unit');
 
 /**
  * Forgets a singleton's instance, so the next get_instance() builds a fresh one and runs init() again.
