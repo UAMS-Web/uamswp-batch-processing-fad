@@ -165,23 +165,37 @@ describe('enqueue_scripts', function (): void {
     it('enqueues the runner and its data on the batches page for a user who can open it', function () use ($admin_with_menu): void {
         $admin = $admin_with_menu();
 
-        Functions\expect('wp_enqueue_script')->once()->with(
-            'wp-batch-processing',
-            'https://example.test/wp-content/plugins/uamswp-batch-processing/assets/processor.js',
-            ['jquery'],
-            filemtime(WP_BP_PATH.'assets/processor.js'),
-            true
-        );
-        expectApplied('wp_batch_processing_delay')->once()->with(0)->andReturn(3);
-        Functions\expect('wp_localize_script')->once()->with('wp-batch-processing', 'DgBatchRunner', [
-            'ajax_url' => 'https://example.test/wp-admin/admin-ajax.php',
-            'nonce' => 'nonce-for-wp-batch-processing',
-            'batch_id' => 'fake',
-            'delay' => 3,
-            'text' => ['processing' => 'Processing...', 'start' => 'Start'],
-        ]);
+        // The version is the script file's own modification time, so give the file a time no
+        // directory can share, then put the real one back.
+        $script = WP_BP_PATH.'assets/processor.js';
+        $original_mtime = filemtime($script);
+        touch($script, 1500000000);
+        clearstatcache();
+        $pinned_mtime = filemtime($script);
+        expect($pinned_mtime)->not->toBe(filemtime(dirname($script)));
 
-        $admin->enqueue_scripts('toplevel_page_dg-batches');
+        try {
+            Functions\expect('wp_enqueue_script')->once()->with(
+                'wp-batch-processing',
+                'https://example.test/wp-content/plugins/uamswp-batch-processing/assets/processor.js',
+                ['jquery'],
+                $pinned_mtime,
+                true
+            );
+            expectApplied('wp_batch_processing_delay')->once()->with(0)->andReturn(3);
+            Functions\expect('wp_localize_script')->once()->with('wp-batch-processing', 'DgBatchRunner', [
+                'ajax_url' => 'https://example.test/wp-admin/admin-ajax.php',
+                'nonce' => 'nonce-for-wp-batch-processing',
+                'batch_id' => 'fake',
+                'delay' => 3,
+                'text' => ['processing' => 'Processing...', 'start' => 'Start'],
+            ]);
+
+            $admin->enqueue_scripts('toplevel_page_dg-batches');
+        } finally {
+            touch($script, $original_mtime);
+            clearstatcache();
+        }
     });
 
     it('sends batch id 0 when the query string carries none', function () use ($admin_with_menu): void {
@@ -201,6 +215,12 @@ describe('enqueue_scripts', function (): void {
         Functions\expect('wp_enqueue_script')->never();
 
         fresh_admin()->enqueue_scripts('toplevel_page_dg-batches');
+    });
+
+    it('enqueues nothing before the menu has been added, even for an empty hook suffix', function (): void {
+        Functions\expect('wp_enqueue_script')->never();
+
+        fresh_admin()->enqueue_scripts();
     });
 
     it('enqueues nothing on a different admin screen, whatever the query string says', function () use ($admin_with_menu): void {
