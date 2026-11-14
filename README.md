@@ -164,6 +164,10 @@ node .claude/skills/local-ci/local-ci.mjs
 
 Name every test file `*Test.php`, or the suite does not pick it up.
 
+### Mutation testing
+
+`composer mutate` mutates `includes/`, `fad/` and the plugin file against the Unit tests that cover them, with PCOV or Xdebug loaded (see the `pcov-setup` skill). The script names its test files because the Unit bootstrap loads Patchwork, and a run that names no test file scores kills it did not earn. Pass `-- --min=100` to fail on any survivor, and `-- --path=<file>` to mutate one file. The shared remote chain runs the same script on changed files for a pull request and on everything for a manual dispatch, behind the `RUN_REMOTE_CI` switch below.
+
 ### Code quality
 
 Rector, PHPStan (with the WordPress extension and stubs) and Pint from the shared code-quality standard are development dependencies only, and each is a runner job and a Composer script:

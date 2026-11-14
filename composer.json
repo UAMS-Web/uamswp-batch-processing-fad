@@ -27,6 +27,10 @@
     "scripts": {
         "test": "@test:unit",
         "test:unit": "pest",
+        "mutate": [
+            "Composer\\Config::disableProcessTimeout",
+            "pest tests/Unit/AdminTest.php tests/Unit/AjaxHandlerTest.php tests/Unit/BatchItemTest.php tests/Unit/BatchProcessorTest.php tests/Unit/BatchTest.php tests/Unit/BpHelperTest.php tests/Unit/ListTableTest.php tests/Unit/LoadTimeTest.php tests/Unit/SingletonTest.php tests/Unit/Fad/AoesBatchTest.php tests/Unit/Fad/ContentBatchesTest.php tests/Unit/Fad/FilterBatchTest.php tests/Unit/Fad/LoadTimeTest.php tests/Unit/Fad/NrcCacheBatchTest.php tests/Unit/Fad/OffsetBatchesTest.php tests/Unit/Fad/RegionBatchesTest.php tests/Unit/Fad/SyncBatchesTest.php tests/Unit/Fad/TermBatchesTest.php --mutate --covered-only --path=includes,fad,uamswp-batch-processing.php"
+        ],
         "stan": "phpstan analyse --no-progress --memory-limit=2G",
         "refactor": "rector",
         "refactor:sweep": "rector --clear-cache --config=rector-sweep.php",
@@ -38,6 +42,7 @@
     "scripts-descriptions": {
         "test": "Run the test suite.",
         "test:unit": "Run the Pest suite that needs no WordPress and no database.",
+        "mutate": "Mutate includes/, fad/ and the plugin file against the Unit tests that cover them (named, because the Unit bootstrap loads Patchwork and a directory scan fails).",
         "stan": "Run PHPStan at the level phpstan.neon.dist sets.",
         "refactor": "Apply the gating Rector profile.",
         "refactor:sweep": "Apply the sweep Rector profile; review the diff.",
