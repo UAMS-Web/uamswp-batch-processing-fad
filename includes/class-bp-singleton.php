@@ -31,11 +31,15 @@ trait WP_BP_Singleton
 {
     /**
      * The current instance
+     *
+     * @var static|null
      */
     protected static $instance;
 
     /**
      * Returns the current instance
+     *
+     * @return static
      */
     final public static function get_instance()
     {
@@ -50,7 +54,11 @@ trait WP_BP_Singleton
         $this->init();
     }
 
-    // Prevent instances
+    /**
+     * A hook for the using class to override; the default does nothing.
+     *
+     * @return void
+     */
     protected function init() {}
 
     /**

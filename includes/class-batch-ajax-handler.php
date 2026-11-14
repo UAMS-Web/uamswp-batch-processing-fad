@@ -36,6 +36,8 @@ class WP_Batch_Processing_Ajax_Handler
 
     /**
      * Setup the ajax endpoints
+     *
+     * @return void
      */
     protected function init()
     {
