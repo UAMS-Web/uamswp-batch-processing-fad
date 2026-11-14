@@ -3,6 +3,9 @@
     "description": "Batch processing for the UAMS Find-a-Doc WordPress plugin.",
     "type": "wordpress-plugin",
     "license": "GPL-2.0-or-later",
+    "require": {
+        "php": ">=8.2"
+    },
     "require-dev": {
         "brain/monkey": "^2.7",
         "pestphp/pest": "^5.3"
