@@ -63,7 +63,8 @@ class WP_Batch_Processing_Ajax_Handler {
 		}
 
 		// Validate the batch id.
-		$batch_id = isset( $_REQUEST['batch_id'] ) ? $_REQUEST['batch_id'] : false;
+		// An absent id and an id no batch has are both answered 'Invalid batch id', so a request cannot tell the two apart.
+		$batch_id = isset( $_REQUEST['batch_id'] ) ? $_REQUEST['batch_id'] : false; // @pest-mutate-ignore: FalseToTrue
 		if ( ! $batch_id ) {
 			wp_send_json_error( array(
 				'message' => 'Invalid batch id',
@@ -73,6 +74,14 @@ class WP_Batch_Processing_Ajax_Handler {
 
 		// Get the batch object
 		$batch = WP_Batch_Processor::get_instance()->get_batch( $batch_id );
+
+		// No registered batch has this id.
+		if ( ! $batch ) {
+			wp_send_json_error( array(
+				'message' => 'Invalid batch id',
+			) );
+			exit();
+		}
 
 		// Process the next item.
 		$next_item = $batch->get_next_item();
@@ -143,7 +152,8 @@ class WP_Batch_Processing_Ajax_Handler {
 			exit;
 		}
 		// Validate the batch id.
-		$batch_id = isset( $_REQUEST['batch_id'] ) ? $_REQUEST['batch_id'] : false;
+		// An absent id and an id no batch has are both answered 'Invalid batch id', so a request cannot tell the two apart.
+		$batch_id = isset( $_REQUEST['batch_id'] ) ? $_REQUEST['batch_id'] : false; // @pest-mutate-ignore: FalseToTrue
 		if ( ! $batch_id ) {
 			wp_send_json_error( array(
 				'message' => 'Invalid batch id',
@@ -152,6 +162,14 @@ class WP_Batch_Processing_Ajax_Handler {
 		}
 		// Get the batch object
 		$batch = WP_Batch_Processor::get_instance()->get_batch( $batch_id );
+
+		// No registered batch has this id.
+		if ( ! $batch ) {
+			wp_send_json_error( array(
+				'message' => 'Invalid batch id',
+			) );
+			exit;
+		}
 		// Restart the batch.
 		$batch->restart();
 		// Send json
