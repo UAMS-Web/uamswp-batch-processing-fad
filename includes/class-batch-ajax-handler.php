@@ -69,7 +69,7 @@ class WP_Batch_Processing_Ajax_Handler
         // Validate the batch id.
         // An absent id and an id no batch has are both answered 'Invalid batch id', so a request cannot tell the two apart.
         $batch_id = $_REQUEST['batch_id'] ?? false; // @pest-mutate-ignore: FalseToTrue
-        if (! $batch_id) {
+        if (! $batch_id || ! is_string($batch_id)) {
             wp_send_json_error([
                 'message' => 'Invalid batch id',
             ]);
@@ -156,7 +156,7 @@ class WP_Batch_Processing_Ajax_Handler
         // Validate the batch id.
         // An absent id and an id no batch has are both answered 'Invalid batch id', so a request cannot tell the two apart.
         $batch_id = $_REQUEST['batch_id'] ?? false; // @pest-mutate-ignore: FalseToTrue
-        if (! $batch_id) {
+        if (! $batch_id || ! is_string($batch_id)) {
             wp_send_json_error([
                 'message' => 'Invalid batch id',
             ]);

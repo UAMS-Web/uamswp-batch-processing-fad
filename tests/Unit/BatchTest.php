@@ -52,6 +52,21 @@ it('reads the processed ids from the batch option', function (): void {
         ->and($batch->get_processed_count())->toBe(1);
 });
 
+it('reads the stored ids as a list, and leaves out anything that is not an id', function (): void {
+    /** @var UnitTestCase $this */
+    $batch = new FakeBatch('b', [1, 2]);
+    $this->store['batch_b_processed'] = [4 => 1, 9 => 'two', 12 => 2.5, 13 => [3], 14 => null];
+
+    expect($batch->get_processed_items())->toBe([1, 'two']);
+});
+
+it('reports no processed items when the stored option is not an array', function (mixed $stored): void {
+    /** @var UnitTestCase $this */
+    $this->store['batch_b_processed'] = $stored;
+
+    expect((new FakeBatch('b', [1]))->get_processed_items())->toBe([]);
+})->with(['string' => ['1,2'], 'false' => [false], 'int' => [5]]);
+
 it('records a processed id under the batch option', function (): void {
     /** @var UnitTestCase $this */
     $batch = new FakeBatch('b', [1, 2]);
@@ -69,7 +84,7 @@ it('records each id once however often it is marked', function (): void {
     $batch->mark_as_processed(2);
     $batch->mark_as_processed(1);
 
-    expect(array_values($this->store['batch_b_processed']))->toBe([1, 2]);
+    expect(array_values((array) $this->store['batch_b_processed']))->toBe([1, 2]);
 });
 
 it('says whether an item was processed', function (): void {

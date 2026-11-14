@@ -97,7 +97,7 @@ if (class_exists('WP_Batch')) {
         public function process($item): bool
         {
 
-            $p_id = $item->get_value('id');
+            $p_id = $item->get_int_value('id');
 
             // error_log("ID: ".$t_id);
 
@@ -110,9 +110,7 @@ if (class_exists('WP_Batch')) {
                         $value2new = get_field('treatment_conditions', $post_id2new, false);
 
                         // allow for selected posts to not contain a value
-                        if (empty($value2new)) {
-                            $value2new = [];
-                        }
+                        $value2new = WP_BP_Helper::acf_list($value2new);
 
                         // bail early if the current $p_id is already found in selected post's $value2new
                         if (in_array($p_id, $value2new)) {
