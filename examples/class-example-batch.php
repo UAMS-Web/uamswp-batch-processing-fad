@@ -54,7 +54,7 @@ if (class_exists('WP_Batch')) {
         {
 
             $users = get_users([
-                'number' => '40',
+                'number' => 40,
                 'role' => 'author',
             ]);
 
@@ -81,7 +81,7 @@ if (class_exists('WP_Batch')) {
 
             // Return WP_Error if the item processing failed (In our case we simply skip author with user id 5)
             if ($author_id == 5) {
-                return new WP_Error(302, 'Author skipped');
+                return new WP_Error('302', 'Author skipped');
             }
 
             // Do the expensive processing here. eg. Sending email.
