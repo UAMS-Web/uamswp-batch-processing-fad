@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /********************************************************************
  * Copyright (C) 2019 Darko Gjorgjijoski (https://darkog.com)
  *
@@ -21,31 +23,31 @@
 // The direct-access guard runs as the file loads, before any test, and dies when it fires, so no test can reach it
 // in this process; tests/Unit/LoadTimeTest.php pins it in a subprocess.
 // @pest-mutate-ignore: RemoveNot
-if ( ! defined( 'ABSPATH' ) ) { // @pest-mutate-ignore: IfNegated
-	die( 'Direct access is not allowed.' );
+if (! defined('ABSPATH')) { // @pest-mutate-ignore: IfNegated
+    exit('Direct access is not allowed.');
 }
 
 /**
  * Class WP_BP_Helper
  */
-class WP_BP_Helper {
+class WP_BP_Helper
+{
+    /**
+     * Renders a view
+     *
+     * @param  array  $data
+     */
+    public static function render($view, $data = []): void
+    {
+        $path = WP_BP_PATH.'views'.DIRECTORY_SEPARATOR.$view.'.php';
+        if (file_exists($path)) {
+            if (! empty($data)) {
+                extract($data);
+            }
 
-	/**
-	 * Renders a view
-	 *
-	 * @param $view
-	 * @param array $data
-	 */
-	public static function render( $view, $data = [] ): void {
-		$path = WP_BP_PATH . 'views' . DIRECTORY_SEPARATOR . $view . '.php';
-		if ( file_exists( $path ) ) {
-			if ( ! empty( $data ) ) {
-				extract( $data );
-			}
-            
-			include( $path );
-		} else {
-			echo 'View ' . $view . ' not found';
-		}
-	}
+            include $path;
+        } else {
+            echo 'View '.$view.' not found';
+        }
+    }
 }
