@@ -74,7 +74,7 @@ class WP_BP_List_Table extends WP_List_Table
     /**
      * Default column values if no callback found
      *
-     * @param  object  $item
+     * @param  WP_Batch  $item
      * @param  string  $column_name
      * @return string
      */
@@ -106,7 +106,7 @@ class WP_BP_List_Table extends WP_List_Table
     /**
      * Render the designation name column
      *
-     * @param  object  $item
+     * @param  WP_Batch  $item
      */
     public function column_title($item): string
     {

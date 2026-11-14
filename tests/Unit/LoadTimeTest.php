@@ -26,7 +26,7 @@ declare(strict_types=1);
  */
 function php_subprocess(string $code): array
 {
-    $process = proc_open(
+    $process = open_process(
         [PHP_BINARY, '-d', 'error_reporting=1', '-d', 'display_errors=1', '-r', $code],
         [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
         $pipes

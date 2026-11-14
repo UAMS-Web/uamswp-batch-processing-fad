@@ -72,7 +72,7 @@ it('refuses to be built through the constructor, and says so as an Error', funct
 it('compiles and loads on this PHP without a warning of any kind', function (): void {
     // A compile-time warning reaches no error handler, so the file is loaded in a fresh process with every
     // level reported and display on; anything PHP has to say about the trait is printed.
-    $process = proc_open(
+    $process = open_process(
         [PHP_BINARY, '-d', 'error_reporting=-1', '-d', 'display_errors=1', '-r', 'define("ABSPATH", "/tmp/"); include '.var_export(dirname(__DIR__, 2).'/includes/class-bp-singleton.php', true).'; echo "loaded";'],
         [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
         $pipes

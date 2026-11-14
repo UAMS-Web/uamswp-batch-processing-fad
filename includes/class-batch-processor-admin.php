@@ -99,7 +99,7 @@ class WP_Batch_Processor_Admin
             'wp-batch-processing',
             WP_BP_URL.'assets/processor.js',
             ['jquery'],
-            filemtime(WP_BP_PATH.'assets/processor.js'),
+            (string) filemtime(WP_BP_PATH.'assets/processor.js'),
             true
         );
         wp_localize_script('wp-batch-processing', 'DgBatchRunner', [
