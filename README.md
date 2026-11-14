@@ -186,6 +186,10 @@ node .claude/skills/local-ci/local-ci.mjs > ci.log 2>&1
 
 `--jobs a,b` runs named jobs only and `--all` runs every job; the two exclude each other. The jobs live in `local-ci.json`. A pull request carries the runner's verdict as a comment naming the commit it validated.
 
+### Remote CI
+
+`.github/workflows/ci.yml` calls the shared chain in `UAMS-Web/uams-ci-workflows`, pinned to a release tag, and ends in the one job named `CI`. The repository is private, so the call and `CI` are gated on the Actions variable `RUN_REMOTE_CI`: set to `false`, they report `skipped` and use no minutes, and the local runner above is the whole gate. Unset, or any other value, runs the chain. A `skipped` job proves nothing. To take a newer chain, move the pin in `ci.yml` and pass only inputs the new tag declares.
+
 ### Pre-commit guard
 
 `.githooks/pre-commit` refuses a commit that stages a file matching `guard.deny` in `local-ci.json` (a `wp-config.php`, a database dump, a spreadsheet export, an `.env`, a key). Git does not run a hook from the repository on its own, so each clone turns it on once:
