@@ -45,10 +45,16 @@ final class FakeBatch extends WP_Batch
         $this->finishCount++;
     }
 
-    /** Drops the queue, so a test can reach push()'s non-array guard. */
+    /**
+     * Drops the queue, so a test can reach push()'s non-array guard.
+     *
+     * WP_Batch::$items is documented as an array, and the guard exists for a subclass that breaks that,
+     * so the value goes in through reflection: a plain assignment would be the very contract break the
+     * analyzer reports.
+     */
     public function breakItems(): void
     {
-        $this->items = null;
+        (new ReflectionProperty(WP_Batch::class, 'items'))->setValue($this, null);
     }
 
     /** @param WP_Batch_Item $item */
