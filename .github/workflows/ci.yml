@@ -38,6 +38,13 @@ on:
   pull_request:
   push:
     branches: [master]
+  # The full mutation pass, weekly (Mondays 07:23 UTC), on the default branch. A scheduled run
+  # mutates everything `composer mutate` covers, under the chain's `mutate-full-timeout-minutes`
+  # (default 180); a pull request or a push keeps the 45-minute cap on changed files. The call
+  # is gated on `RUN_REMOTE_CI` like every other event, so with the switch off a scheduled run
+  # reports `skipped`.
+  schedule:
+    - cron: '23 7 * * 1'
   workflow_dispatch:
 
 # A new push to a pull request cancels that pull request's stale run. Every other run gets a
