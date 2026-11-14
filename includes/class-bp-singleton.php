@@ -43,7 +43,7 @@ trait WP_BP_Singleton {
 	/**
 	 * WP_BP_Singleton constructor.
 	 */
-	final private function __construct() {
+	private function __construct() {
 		$this->init();
 	}
 
@@ -51,9 +51,15 @@ trait WP_BP_Singleton {
 	protected function init() {
 	}
 
-	final private function __wakeup() {
+	/**
+	 * Refuses unserialize(): a singleton is built through get_instance() only.
+	 *
+	 * @throws Exception Always.
+	 */
+	public function __wakeup() {
+		throw new Exception( 'Cannot unserialize a singleton.' );
 	}
 
-	final private function __clone() {
+	private function __clone() {
 	}
 }

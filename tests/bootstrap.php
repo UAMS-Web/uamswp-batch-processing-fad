@@ -32,17 +32,6 @@ require_once __DIR__.'/Fixtures/wordpress-classes.php';
 // Some of these files register hooks as they load (a singleton's init()), so load them with Brain Monkey up.
 Brain\Monkey\setUp();
 
-// PHP 8 warns as the singleton trait compiles: a private __wakeup() (a user-level warning, kept in $GLOBALS so a
-// test can pin it) and private final methods (a compile-time warning no handler receives, so it is silenced for the
-// load and left to the pinning test's docblock).
-$GLOBALS['bp_load_warnings'] = [];
-set_error_handler(static function (int $level, string $message): bool {
-    $GLOBALS['bp_load_warnings'][] = $message;
-
-    return true;
-}, E_WARNING | E_DEPRECATED);
-$bpErrorReporting = error_reporting(error_reporting() & ~E_COMPILE_WARNING);
-
 foreach ([
     'class-bp-helper',
     'class-bp-singleton',
@@ -55,9 +44,6 @@ foreach ([
 ] as $file) {
     require_once __DIR__.'/../includes/'.$file.'.php';
 }
-
-restore_error_handler();
-error_reporting($bpErrorReporting);
 
 // The batches under fad/ register themselves on a hook as they load, so load them with Brain Monkey up too.
 // Their process() methods call error_log() on some paths; send it to a file instead of the test output.
