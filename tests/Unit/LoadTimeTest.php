@@ -28,13 +28,13 @@ function php_subprocess(string $code): array
 {
     $process = open_process(
         [PHP_BINARY, '-d', 'error_reporting=1', '-d', 'display_errors=1', '-r', $code],
-        [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
-        $pipes
+        $stdout,
+        $stderr
     );
 
-    $output = (string) stream_get_contents($pipes[1]);
-    fclose($pipes[1]);
-    fclose($pipes[2]);
+    $output = (string) stream_get_contents($stdout);
+    fclose($stdout);
+    fclose($stderr);
 
     return ['output' => $output, 'status' => proc_close($process)];
 }
