@@ -40,7 +40,7 @@ function forget_singleton(string $class): void
  */
 function fake_post_queries(array ...$idLists): void
 {
-    WP_Query::$responses = $idLists;
+    WP_Query::$responses = array_values($idLists);
 
     when('get_the_ID')->alias(fn (): int => WP_Query::$currentId);
     when('wp_reset_postdata')->alias(function (): void {
@@ -63,6 +63,48 @@ function batch_of(string $class): WP_Batch
     }
 
     return new $class;
+}
+
+/**
+ * Returns the batch's next unprocessed item, failing the test when there is none.
+ */
+function next_item(WP_Batch $batch): WP_Batch_Item
+{
+    return $batch->get_next_item() ?: throw new LogicException('The batch has no item left to process.');
+}
+
+/**
+ * Opens a subprocess, failing the test when the process cannot start.
+ *
+ * @param  list<string>  $command
+ * @param  array<int, list<string>>  $descriptors
+ * @param  array<int, resource>  $pipes  Filled with the pipes the descriptors open.
+ * @return resource
+ */
+function open_process(array $command, array $descriptors, ?array &$pipes)
+{
+    return proc_open($command, $descriptors, $pipes) ?: throw new RuntimeException('proc_open failed.');
+}
+
+/**
+ * Calls the init function a dataset names, failing the test when no such function exists.
+ */
+function run_init(string $function): void
+{
+    if (! is_callable($function)) {
+        throw new InvalidArgumentException($function.' is not a function.');
+    }
+    $function();
+}
+
+/**
+ * Returns the class a dataset names, failing the test when no such class exists.
+ *
+ * @return class-string
+ */
+function class_named(string $class): string
+{
+    return class_exists($class) ? $class : throw new InvalidArgumentException($class.' is not a class.');
 }
 
 /**

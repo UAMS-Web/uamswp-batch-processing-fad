@@ -172,9 +172,9 @@ it('does nothing in finish()', function (string $class): void {
 it('registers one batch of its class with the processor when the init function runs', function (string $class, string $id, string $title, string $type, string $conditions, string $treatments, string $conditionsCpt, string $treatmentsCpt, string $init): void {
     fake_post_queries([]);
 
-    $init();
+    run_init($init);
 
     $batches = WP_Batch_Processor::get_instance()->get_batches();
     expect($batches)->toHaveCount(1)
-        ->and($batches[0])->toBeInstanceOf($class);
+        ->and($batches[0])->toBeInstanceOf(class_named($class));
 })->with('offset batches');

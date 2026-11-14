@@ -84,15 +84,15 @@ it('hands out the first item that is not processed yet', function (): void {
     $batch = new FakeBatch('b', [1, 2, 3]);
     $batch->mark_as_processed(1);
 
-    expect($batch->get_next_item()->id)->toBe(2);
+    expect(next_item($batch)->id)->toBe(2);
 
     $batch->mark_as_processed(2);
 
-    expect($batch->get_next_item()->id)->toBe(3);
+    expect(next_item($batch)->id)->toBe(3);
 });
 
 it('hands out the first item when none is processed', function (): void {
-    expect((new FakeBatch('b', [4, 5]))->get_next_item()->id)->toBe(4);
+    expect(next_item(new FakeBatch('b', [4, 5]))->id)->toBe(4);
 });
 
 it('hands out false when every item is processed', function (): void {

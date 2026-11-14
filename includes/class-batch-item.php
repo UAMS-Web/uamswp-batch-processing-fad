@@ -36,7 +36,7 @@ class WP_Batch_Item
     /**
      * WP_Batch_Item constructor
      *
-     * @param  int  $id
+     * @param  int|string  $id
      * @param  mixed  $data
      */
     public function __construct(
