@@ -18,11 +18,17 @@
  * along with WP Batch Processing. If not, see <https://www.gnu.org/licenses/>.
  **********************************************************************/
 
-if ( ! defined( 'ABSPATH' ) ) {
+// The direct-access guard runs as the file loads, before any test, and dies when it fires, so no test can reach it
+// in this process; tests/Unit/LoadTimeTest.php pins it in a subprocess.
+// @pest-mutate-ignore: RemoveNot
+if ( ! defined( 'ABSPATH' ) ) { // @pest-mutate-ignore: IfNegated
 	die( 'Direct access is not allowed.' );
 }
 
-if ( ! class_exists( 'WP_List_Table' ) ) {
+// Runs as the file loads, after the Unit bootstrap has declared its stand-in for WP_List_Table, so no test can reach
+// the require in this process; tests/Unit/LoadTimeTest.php pins it in a subprocess.
+// @pest-mutate-ignore: RemoveNot, ConcatSwitchSides, ConcatRemoveRight, ConcatRemoveLeft
+if ( ! class_exists( 'WP_List_Table' ) ) { // @pest-mutate-ignore: IfNegated
 	require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
 }
 
