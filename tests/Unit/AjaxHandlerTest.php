@@ -12,12 +12,12 @@
 
 declare(strict_types=1);
 
-use function Brain\Monkey\Functions\when;
+use Brain\Monkey\Actions;
+use Brain\Monkey\Functions;
+
 use function Brain\Monkey\Actions\expectAdded;
 use function Brain\Monkey\Filters\expectApplied;
-use Brain\Monkey\Actions;
-use Brain\Monkey\Filters;
-use Brain\Monkey\Functions;
+use function Brain\Monkey\Functions\when;
 
 /**
  * Runs a handler method and returns what it sent.

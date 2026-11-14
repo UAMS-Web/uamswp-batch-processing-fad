@@ -9,13 +9,12 @@
 
 declare(strict_types=1);
 
+use Brain\Monkey\Functions;
+
 use function Brain\Monkey\Actions\expectAdded;
 use function Brain\Monkey\Actions\expectDone;
-use function Brain\Monkey\Functions\when;
 use function Brain\Monkey\Filters\expectApplied;
-use Brain\Monkey\Actions;
-use Brain\Monkey\Filters;
-use Brain\Monkey\Functions;
+use function Brain\Monkey\Functions\when;
 
 /**
  * Builds a fresh admin instance, as WordPress does once at load.

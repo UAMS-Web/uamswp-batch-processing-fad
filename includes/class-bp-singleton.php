@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /********************************************************************
  * Copyright (C) 2019 Darko Gjorgjijoski (https://darkog.com)
  *
@@ -21,43 +23,45 @@
 // The direct-access guard runs as the file loads, before any test, and dies when it fires, so no test can reach it
 // in this process; tests/Unit/LoadTimeTest.php pins it in a subprocess.
 // @pest-mutate-ignore: RemoveNot
-if ( ! defined( 'ABSPATH' ) ) { // @pest-mutate-ignore: IfNegated
-	die( 'Direct access is not allowed.' );
+if (! defined('ABSPATH')) { // @pest-mutate-ignore: IfNegated
+    exit('Direct access is not allowed.');
 }
 
-trait WP_BP_Singleton {
-	/**
-	 * The current instance
-	 */
-	protected static $instance;
+trait WP_BP_Singleton
+{
+    /**
+     * The current instance
+     */
+    protected static $instance;
 
-	/**
-	 * Returns the current instance
-	 */
-	final public static function get_instance() {
-		return static::$instance ?? static::$instance = new static;
-	}
+    /**
+     * Returns the current instance
+     */
+    final public static function get_instance()
+    {
+        return static::$instance ?? static::$instance = new static;
+    }
 
-	/**
-	 * WP_BP_Singleton constructor.
-	 */
-	final private function __construct() {
-		$this->init();
-	}
+    /**
+     * WP_BP_Singleton constructor.
+     */
+    final private function __construct()
+    {
+        $this->init();
+    }
 
-	// Prevent instances
-	protected function init() {
-	}
+    // Prevent instances
+    protected function init() {}
 
-	/**
-	 * Refuses unserialize(): a singleton is built through get_instance() only.
-	 *
-	 * @throws Exception Always.
-	 */
-	public function __wakeup() {
-		throw new Exception( 'Cannot unserialize a singleton.' );
-	}
+    /**
+     * Refuses unserialize(): a singleton is built through get_instance() only.
+     *
+     * @throws Exception Always.
+     */
+    public function __wakeup()
+    {
+        throw new Exception('Cannot unserialize a singleton.');
+    }
 
-	private function __clone() {
-	}
+    private function __clone() {}
 }

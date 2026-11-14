@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /********************************************************************
@@ -23,22 +24,20 @@ declare(strict_types=1);
 // The direct-access guard runs as the file loads, before any test, and dies when it fires, so no test can reach it
 // in this process; tests/Unit/LoadTimeTest.php pins it in a subprocess.
 // @pest-mutate-ignore: RemoveNot
-if ( ! defined( 'ABSPATH' ) ) { // @pest-mutate-ignore: IfNegated
-	die( 'Direct access is not allowed.' );
+if (! defined('ABSPATH')) { // @pest-mutate-ignore: IfNegated
+    exit('Direct access is not allowed.');
 }
 
 /**
  * Class WP_Batch_Item
  */
-class WP_Batch_Item {
-
-	/**
+class WP_Batch_Item
+{
+    /**
      * WP_Batch_Item constructor
      *
-     * @param $id
-     * @param $data
-     * @param int $id
-     * @param mixed $data
+     * @param  int  $id
+     * @param  mixed  $data
      */
     public function __construct(
         /**
@@ -49,18 +48,16 @@ class WP_Batch_Item {
          * Additional data for the item
          */
         public $data = null
-    )
-    {
-    }
+    ) {}
 
-	/**
+    /**
      * Return data value
      *
-     * @param $key
      *
      * @return mixed|null
      */
-    public function get_value($key, $default = null) {
-		return $this->data[$key] ?? $default;
-	}
+    public function get_value($key, $default = null)
+    {
+        return $this->data[$key] ?? $default;
+    }
 }

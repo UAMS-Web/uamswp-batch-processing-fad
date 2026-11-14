@@ -1,9 +1,10 @@
 <?php
 /* @var mixed $id - The batch id */
 $batch = WP_Batch_Processor::get_instance()->get_batch($id);
-if(is_null($batch)) {
-	echo 'Batch not found.';
-	return;
+if (is_null($batch)) {
+    echo 'Batch not found.';
+
+    return;
 }
 $percentage = $batch->get_percentage();
 ?>
@@ -18,8 +19,8 @@ $percentage = $batch->get_percentage();
 		</ul>
 		<div class="batch-process-progress-bar">
 			<?php
-			$style = $percentage > 0 ? 'width:'.$percentage.'%' : '';
-			?>
+            $style = $percentage > 0 ? 'width:'.$percentage.'%' : '';
+?>
 			<div class="batch-process-progress-bar-inner" style="<?php echo $style; ?>"></div>
 		</div>
 		<div class="batch-process-current-item">
@@ -27,12 +28,12 @@ $percentage = $batch->get_percentage();
 		</div>
 	</div>
 	<div class="batch-process-actions">
-		<?php if(!$batch->is_finished()): ?>
+		<?php if (! $batch->is_finished()) { ?>
 			<button class="button-primary" id="batch-process-start">Start</button>
 			<button class="button" id="batch-process-stop">Stop</button>
-		<?php else: ?>
+		<?php } else { ?>
 			<button class="button-primary" id="batch-process-restart">Restart</button>
-		<?php endif; ?>
+		<?php } ?>
 	</div>
 </div>
 

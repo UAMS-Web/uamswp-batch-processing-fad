@@ -9,8 +9,9 @@
 
 declare(strict_types=1);
 
-use function Brain\Monkey\Functions\when;
 use Brain\Monkey\Functions;
+
+use function Brain\Monkey\Functions\when;
 
 // WordPress defines this; the batch multiplies it by 30 for the transient's lifetime.
 defined('DAY_IN_SECONDS') || define('DAY_IN_SECONDS', 86400);

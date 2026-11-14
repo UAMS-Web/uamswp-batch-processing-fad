@@ -11,8 +11,9 @@
 
 declare(strict_types=1);
 
-use function Brain\Monkey\Functions\when;
 use Brain\Monkey\Functions;
+
+use function Brain\Monkey\Functions\when;
 
 beforeEach(function (): void {
     $_GET = [];

@@ -49,7 +49,7 @@ it('has an init() that does nothing unless the class defines one', function (): 
 });
 
 it('refuses new and clone from outside the class', function (): void {
-    expect(fn (): \SingletonPlain => new SingletonPlain)->toThrow(Error::class);
+    expect(fn (): SingletonPlain => new SingletonPlain)->toThrow(Error::class);
 
     $instance = SingletonPlain::get_instance();
 
@@ -63,7 +63,7 @@ it('refuses unserialize() of an instance', function (): void {
 });
 
 it('refuses to be built through the constructor, and says so as an Error', function (): void {
-    expect(fn (): \SingletonProbe => new SingletonProbe)->toThrow(Error::class, 'private');
+    expect(fn (): SingletonProbe => new SingletonProbe)->toThrow(Error::class, 'private');
     expect(SingletonProbe::$inits)->toBe(0);
 });
 

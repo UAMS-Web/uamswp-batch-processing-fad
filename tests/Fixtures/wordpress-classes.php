@@ -128,9 +128,7 @@ if (! class_exists('WP_List_Table')) {
         public $_column_headers = [];
 
         /** @param array<string, mixed> $_args */
-        public function __construct(protected $_args = [])
-        {
-        }
+        public function __construct(protected $_args = []) {}
 
         /** @param array<string, string> $actions */
         public function row_actions($actions): string
