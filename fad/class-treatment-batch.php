@@ -112,6 +112,11 @@ if (class_exists('WP_Batch')) {
                 $post_id_offset = 200000;
 
                 $term = get_term_by('id', $t_id, $taxonomy);
+                // A term deleted since setup() queued it has nothing left to copy.
+                if ($term === false) {
+                    return true;
+                }
+
                 // $term_meta = get_option( "taxonomy_$t_id" );
                 $name = $term->name; // Title
                 $slug = $term->slug; // Slug

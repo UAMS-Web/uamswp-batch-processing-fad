@@ -100,13 +100,13 @@ if (! class_exists('WP_Term_Query')) {
      */
     class WP_Term_Query
     {
-        /** @var array<int, array<int, object>> Lists of terms, handed out one per new query. */
+        /** @var array<int, array<int, object{term_id: int}>> Lists of terms, handed out one per new query. */
         public static array $responses = [];
 
         /** @var array<int, array<string, mixed>> The arguments of every query built. */
         public static array $constructed = [];
 
-        /** @var array<int, object> */
+        /** @var array<int, object{term_id: int}> */
         public $terms = [];
 
         /** @param array<string, mixed> $args */

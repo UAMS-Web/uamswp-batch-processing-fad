@@ -118,6 +118,15 @@ describe('process', function (): void {
             ->and(process_item($batch, 1, ['id' => 0]))->toBeTrue();
     })->with('term batches');
 
+    it('inserts nothing and returns true when the term no longer exists', function (string $class, string $id, string $title, string $taxonomy): void {
+        $batch = batch_of($class);
+        Functions\expect('get_term_by')->once()->with('id', 7, $taxonomy)->andReturn(false);
+        Functions\expect('get_field')->never();
+        Functions\expect('wp_insert_post')->never();
+
+        expect(process_item($batch, 7, ['id' => 7]))->toBeTrue();
+    })->with('term batches');
+
     it("inserts nothing when a post with the term's name already exists", function (string $class, string $id, string $title, string $taxonomy): void {
         /** @var UnitTestCase $this */
         $batch = batch_of($class);
@@ -252,9 +261,9 @@ it('does nothing in finish()', function (string $class): void {
 })->with('term batches');
 
 it('registers one batch of its class with the processor when the init function runs', function (string $class, string $id, string $title, string $taxonomy, int $offset, string $contentField, string $excerptField, string $relationField, int $relationOffset, string $init): void {
-    $init();
+    run_init($init);
 
     $batches = WP_Batch_Processor::get_instance()->get_batches();
     expect($batches)->toHaveCount(1)
-        ->and($batches[0])->toBeInstanceOf($class);
+        ->and($batches[0])->toBeInstanceOf(class_named($class));
 })->with('term batches');

@@ -112,7 +112,7 @@ abstract class WP_Batch
     /**
      * Returns false if no items left for processing or WP_Batch_Item object for processing.
      *
-     * @return bool|WP_Batch_Item
+     * @return false|WP_Batch_Item
      */
     public function get_next_item()
     {
@@ -177,7 +177,7 @@ abstract class WP_Batch
     /**
      * Mark specific id as processed.
      *
-     * @param  int  $id
+     * @param  int|string  $id
      * @return void
      */
     public function mark_as_processed($id)
