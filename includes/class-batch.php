@@ -115,7 +115,6 @@ abstract class WP_Batch
     /**
      * Returns false if no items left for processing or WP_Batch_Item object for processing.
      *
-     * @param  WP_Batch_Item  $item
      * @return bool|WP_Batch_Item
      */
     public function get_next_item()
