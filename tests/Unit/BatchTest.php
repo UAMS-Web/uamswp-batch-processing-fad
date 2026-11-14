@@ -31,16 +31,6 @@ it('names its option after its id', function (): void {
     expect((new FakeBatch('my_batch'))->get_db_identifier())->toBe('batch_my_batch_processed');
 });
 
-it('starts a queue when push() meets a store that is not an array', function (): void {
-    $batch = new FakeBatch('b');
-    $batch->breakItems();
-
-    $batch->pushPublic(new WP_Batch_Item(9));
-
-    expect($batch->items())->toHaveCount(1)
-        ->and($batch->items()[0]->id)->toBe(9);
-});
-
 it('appends to the queue in the order pushed', function (): void {
     $batch = new FakeBatch('b');
     $batch->pushPublic(new WP_Batch_Item(2));

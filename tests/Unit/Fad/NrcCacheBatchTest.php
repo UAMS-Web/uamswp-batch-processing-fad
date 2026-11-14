@@ -122,13 +122,14 @@ describe('process', function (): void {
         expect(process_item($this->batch, 7, ['id' => 7]))->toBeTrue();
     });
 
-    it('caches nothing when the fetched body is an error', function (): void {
+    it('caches nothing when the request fails', function (): void {
         /** @var UnitTestCase $this */
+        $error = new WP_Error;
         when('get_field')->justReturn('1234567890');
         when('get_transient')->justReturn(false);
-        when('wp_remote_get')->justReturn(['body' => 'raw']);
-        when('wp_remote_retrieve_body')->justReturn(new WP_Error);
-        Functions\expect('is_wp_error')->once()->andReturn(true);
+        when('wp_remote_get')->justReturn($error);
+        Functions\expect('is_wp_error')->once()->with($error)->andReturn(true);
+        Functions\expect('wp_remote_retrieve_body')->never();
         Functions\expect('set_transient')->never();
 
         expect(process_item($this->batch, 7, ['id' => 7]))->toBeTrue();

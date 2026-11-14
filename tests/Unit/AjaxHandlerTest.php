@@ -127,6 +127,18 @@ describe('process_next_item', function (): void {
         expect(handler_sends('process_next_item')->data)->toBe(['message' => 'Invalid batch id']);
     })->with(['empty string' => [''], 'zero' => ['0']]);
 
+    it('refuses an empty or zero batch id even when a registered batch has that id, and runs no batch code', function (string $id): void {
+        $batch = new FakeBatch($id, [1, 2]);
+        WP_Batch_Processor::get_instance()->register($batch);
+        $_REQUEST['batch_id'] = $id;
+
+        $sent = handler_sends('process_next_item');
+
+        expect($sent->success)->toBeFalse()
+            ->and($sent->data)->toBe(['message' => 'Invalid batch id'])
+            ->and($batch->processedIds)->toBe([]);
+    })->with(['empty string' => [''], 'zero' => ['0']]);
+
     it('refuses a batch id no registered batch has, and runs no batch code', function (): void {
         $batch = new FakeBatch('fake', [1, 2]);
         WP_Batch_Processor::get_instance()->register($batch);
@@ -283,6 +295,20 @@ describe('restart_batch', function (): void {
         expect($sent->success)->toBeFalse()
             ->and($sent->data)->toBe(['message' => 'Invalid batch id']);
     });
+
+    it('refuses an empty or zero batch id even when a registered batch has that id, and restarts nothing', function (string $id): void {
+        /** @var UnitTestCase $this */
+        $batch = new FakeBatch($id, [1, 2]);
+        $batch->mark_as_processed(1);
+        WP_Batch_Processor::get_instance()->register($batch);
+        $_REQUEST['batch_id'] = $id;
+
+        $sent = handler_sends('restart_batch');
+
+        expect($sent->success)->toBeFalse()
+            ->and($sent->data)->toBe(['message' => 'Invalid batch id'])
+            ->and($this->store)->not->toBe([]);
+    })->with(['empty string' => [''], 'zero' => ['0']]);
 
     it('refuses a batch id no registered batch has, and restarts nothing', function (): void {
         /** @var UnitTestCase $this */
