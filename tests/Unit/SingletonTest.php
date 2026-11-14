@@ -74,13 +74,13 @@ it('compiles and loads on this PHP without a warning of any kind', function (): 
     // level reported and display on; anything PHP has to say about the trait is printed.
     $process = open_process(
         [PHP_BINARY, '-d', 'error_reporting=-1', '-d', 'display_errors=1', '-r', 'define("ABSPATH", "/tmp/"); include '.var_export(dirname(__DIR__, 2).'/includes/class-bp-singleton.php', true).'; echo "loaded";'],
-        [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
-        $pipes
+        $stdout,
+        $stderr
     );
-    $output = (string) stream_get_contents($pipes[1]);
-    $errors = (string) stream_get_contents($pipes[2]);
-    fclose($pipes[1]);
-    fclose($pipes[2]);
+    $output = (string) stream_get_contents($stdout);
+    $errors = (string) stream_get_contents($stderr);
+    fclose($stdout);
+    fclose($stderr);
     proc_close($process);
 
     expect($output)->toBe('loaded')
