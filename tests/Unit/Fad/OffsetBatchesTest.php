@@ -15,6 +15,8 @@ declare(strict_types=1);
 
 use Brain\Monkey\Functions;
 
+use function Brain\Monkey\Functions\when;
+
 beforeEach(function (): void {
     forget_singleton(WP_Batch_Processor::class);
 });
@@ -141,7 +143,7 @@ describe('process', function (): void {
 
     it('updates both fields when both have relations', function (string $class, string $id, string $title, string $type, string $conditions, string $treatments, string $conditionsCpt, string $treatmentsCpt): void {
         $batch = new $class;
-        Functions\when('get_field')->alias(fn (string $field, int $post): array => $field === $conditions ? [1] : [2]);
+        when('get_field')->alias(fn (string $field, int $post): array => $field === $conditions ? [1] : [2]);
         Functions\expect('update_field')->once()->with($conditionsCpt, ['100001'], 9);
         Functions\expect('update_field')->once()->with($treatmentsCpt, ['200002'], 9);
 
@@ -150,7 +152,7 @@ describe('process', function (): void {
 
     it('updates nothing when neither field has relations', function (string $class): void {
         $batch = new $class;
-        Functions\when('get_field')->justReturn(false);
+        when('get_field')->justReturn(false);
         Functions\expect('update_field')->never();
 
         expect(process_item($batch, 7, ['id' => 7]))->toBeTrue();

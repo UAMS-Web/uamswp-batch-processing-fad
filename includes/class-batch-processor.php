@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /********************************************************************
  * Copyright (C) 2019 Darko Gjorgjijoski (https://darkog.com)
  *
@@ -21,66 +24,68 @@
 // The direct-access guard runs as the file loads, before any test, and dies when it fires, so no test can reach it
 // in this process; tests/Unit/LoadTimeTest.php pins it in a subprocess.
 // @pest-mutate-ignore: RemoveNot
-if ( ! defined( 'ABSPATH' ) ) { // @pest-mutate-ignore: IfNegated
-	die( 'Direct access is not allowed.' );
+if (! defined('ABSPATH')) { // @pest-mutate-ignore: IfNegated
+    exit('Direct access is not allowed.');
 }
-
 
 /**
  * Class WP_Batch_Processor
  */
-class WP_Batch_Processor {
+class WP_Batch_Processor
+{
+    use WP_BP_Singleton;
 
-	use WP_BP_Singleton;
+    /**
+     * List of batches
+     *
+     * @var WP_Batch[]
+     */
+    protected $batches;
 
-	/**
-	 * List of batches
-	 * @var WP_Batch[]
-	 */
-	protected $batches;
+    /**
+     * Initializes the runner
+     */
+    public function init(): void
+    {
+        $this->batches = [];
+    }
 
-	/**
-	 * Initializes the runner
-	 */
-	public function init() {
-		$this->batches = array();
-	}
+    /**
+     * Register batch
+     *
+     * @param  WP_Batch  $batch
+     */
+    public function register($batch): void
+    {
+        $this->batches[] = $batch;
+    }
 
+    /**
+     * Returns array of registered batches
+     *
+     * @return WP_Batch[]
+     */
+    public function get_batches()
+    {
+        return $this->batches;
+    }
 
-	/**
-	 * Register batch
-	 *
-	 * @param WP_Batch $batch
-	 */
-	public function register( $batch ) {
-		$this->batches[] = $batch;
-	}
+    /**
+     * Returns a batch from the registered ones.
+     *
+     *
+     * @return null|WP_Batch
+     */
+    public function get_batch($id)
+    {
+        foreach ($this->batches as $batch) {
+            if ($batch->id === $id) {
+                return $batch;
+            }
+        }
 
-	/**
-	 * Returns array of registered batches
-	 * @return WP_Batch[]
-	 */
-	public function get_batches() {
-		return $this->batches;
-	}
-
-	/**
-	 * Returns a batch from the registered ones.
-	 *
-	 * @param $id
-	 *
-	 * @return null|WP_Batch
-	 */
-	public function get_batch( $id ) {
-		foreach ( $this->batches as $batch ) {
-			if ( $batch->id === $id ) {
-				return $batch;
-			}
-		}
-
-		return null;
-	}
-
+        return null;
+    }
 }
 
 // Builds the instance as the file loads, before any test; tests/Unit/LoadTimeTest.php pins it in a subprocess.

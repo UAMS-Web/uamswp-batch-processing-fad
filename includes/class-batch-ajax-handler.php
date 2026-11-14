@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /********************************************************************
  * Copyright (C) 2019 Darko Gjorgjijoski (https://darkog.com)
  *
@@ -21,160 +23,168 @@
 // The direct-access guard runs as the file loads, before any test, and dies when it fires, so no test can reach it
 // in this process; tests/Unit/LoadTimeTest.php pins it in a subprocess.
 // @pest-mutate-ignore: RemoveNot
-if ( ! defined( 'ABSPATH' ) ) { // @pest-mutate-ignore: IfNegated
-	die( 'Direct access is not allowed.' );
+if (! defined('ABSPATH')) { // @pest-mutate-ignore: IfNegated
+    exit('Direct access is not allowed.');
 }
 
 /**
  * Class WP_Batch_Processing_Ajax_Handler
  */
-class WP_Batch_Processing_Ajax_Handler {
+class WP_Batch_Processing_Ajax_Handler
+{
+    use WP_BP_Singleton;
 
-	use WP_BP_Singleton;
+    /**
+     * Setup the ajax endpoints
+     */
+    protected function init()
+    {
+        add_action('wp_ajax_dg_process_next_batch_item', [$this, 'process_next_item']);
+        add_action('wp_ajax_dg_restart_batch', [$this, 'restart_batch']);
+    }
 
-	/**
-	 * Setup the ajax endpoints
-	 */
-	protected function init() {
-		add_action( 'wp_ajax_dg_process_next_batch_item', array( $this, 'process_next_item' ) );
-		add_action( 'wp_ajax_dg_restart_batch', array( $this, 'restart_batch' ) );
-	}
+    /**
+     * This is used to handle the processing of each item
+     * and return the status to inform the user.
+     */
+    public function process_next_item(): void
+    {
 
-	/**
-	 * This is used to handle the processing of each item
-	 * and return the status to inform the user.
-	 */
-	public function process_next_item() {
+        // Check ajax referrer
+        if (! check_ajax_referer(WP_Batch_Processor_Admin::NONCE, 'nonce', false)) {
+            wp_send_json_error([
+                'message' => 'Permission denied.',
+            ]);
+            exit();
+        }
 
-		// Check ajax referrer
-		if ( ! check_ajax_referer( WP_Batch_Processor_Admin::NONCE, 'nonce', false ) ) {
-			wp_send_json_error( array(
-				'message' => 'Permission denied.',
-			) );
-			exit();
-		}
+        // Check the capability. A nonce only proves intent; the batches page capability proves the right to run one.
+        if (! current_user_can(WP_Batch_Processor_Admin::CAPABILITY)) {
+            wp_send_json_error([
+                'message' => 'Permission denied.',
+            ], 403);
+            exit();
+        }
 
-		// Check the capability. A nonce only proves intent; the batches page capability proves the right to run one.
-		if ( ! current_user_can( WP_Batch_Processor_Admin::CAPABILITY ) ) {
-			wp_send_json_error( array(
-				'message' => 'Permission denied.',
-			), 403 );
-			exit();
-		}
+        // Validate the batch id.
+        // An absent id and an id no batch has are both answered 'Invalid batch id', so a request cannot tell the two apart.
+        $batch_id = $_REQUEST['batch_id'] ?? false; // @pest-mutate-ignore: FalseToTrue
+        if (! $batch_id) {
+            wp_send_json_error([
+                'message' => 'Invalid batch id',
+            ]);
+            exit();
+        }
 
-		// Validate the batch id.
-		// An absent id and an id no batch has are both answered 'Invalid batch id', so a request cannot tell the two apart.
-		$batch_id = isset( $_REQUEST['batch_id'] ) ? $_REQUEST['batch_id'] : false; // @pest-mutate-ignore: FalseToTrue
-		if ( ! $batch_id ) {
-			wp_send_json_error( array(
-				'message' => 'Invalid batch id',
-			) );
-			exit();
-		}
+        // Get the batch object
+        $batch = WP_Batch_Processor::get_instance()->get_batch($batch_id);
 
-		// Get the batch object
-		$batch = WP_Batch_Processor::get_instance()->get_batch( $batch_id );
+        // No registered batch has this id.
+        if (! $batch) {
+            wp_send_json_error([
+                'message' => 'Invalid batch id',
+            ]);
+            exit();
+        }
 
-		// No registered batch has this id.
-		if ( ! $batch ) {
-			wp_send_json_error( array(
-				'message' => 'Invalid batch id',
-			) );
-			exit();
-		}
+        // Process the next item.
+        $next_item = $batch->get_next_item();
 
-		// Process the next item.
-		$next_item = $batch->get_next_item();
+        // No next item for processing. The batch processing is finished, probably.
+        $is_finished = ($next_item === false);
 
-		// No next item for processing. The batch processing is finished, probably.
-		$is_finished = ( false === $next_item );
+        if ($is_finished) {
+            $total_processed = $batch->get_processed_count();
+            $total_items = $batch->get_items_count();
+            $percentage = $batch->get_percentage();
+            $batch->finish();
+            wp_send_json_success([
+                'message' => apply_filters('dg_batch_item_error_message', __('Processing finished.', 'wp-batch-processing')),
+                'is_finished' => 1,
+                'total_processed' => $total_processed,
+                'total_items' => $total_items,
+                'percentage' => $percentage,
+            ]);
+        } else {
+            @set_time_limit(0);
+            $response = $batch->process($next_item);
+            $batch->mark_as_processed($next_item->id);
+            $total_processed = $batch->get_processed_count();
+            $total_items = $batch->get_items_count();
+            $percentage = $batch->get_percentage();
+            if (is_wp_error($response)) {
+                $error_message = apply_filters('dg_batch_item_error_message', 'Error processing item with id '.$next_item->id.': '.$response->get_error_message(), $next_item);
+                wp_send_json_error([
+                    'message' => $error_message,
+                    'is_finished' => 0,
+                    'total_processed' => $total_processed,
+                    'total_items' => $total_items,
+                    'percentage' => $percentage,
+                ]);
+            } else {
+                $success_message = apply_filters('dg_batch_item_success_message', 'Processed item with id '.$next_item->id, $next_item);
+                wp_send_json_success([
+                    'message' => $success_message,
+                    'is_finished' => 0,
+                    'total_processed' => $total_processed,
+                    'total_items' => $total_items,
+                    'percentage' => $percentage,
+                ]);
+            }
 
-		if ( $is_finished ) {
-			$total_processed = $batch->get_processed_count();
-			$total_items     = $batch->get_items_count();
-			$percentage      = $batch->get_percentage();
-			$batch->finish();
-			wp_send_json_success( array(
-				'message'         => apply_filters( 'dg_batch_item_error_message', __( 'Processing finished.', 'wp-batch-processing' ) ),
-				'is_finished'     => 1,
-				'total_processed' => $total_processed,
-				'total_items'     => $total_items,
-				'percentage'      => $percentage,
-			) );
-		} else {
-			@set_time_limit( 0 );
-			$response = $batch->process( $next_item );
-			$batch->mark_as_processed( $next_item->id );
-			$total_processed = $batch->get_processed_count();
-			$total_items     = $batch->get_items_count();
-			$percentage      = $batch->get_percentage();
-			if ( is_wp_error( $response ) ) {
-				$error_message = apply_filters( 'dg_batch_item_error_message', 'Error processing item with id ' . $next_item->id . ': ' . $response->get_error_message(), $next_item );
-				wp_send_json_error( array(
-					'message'         => $error_message,
-					'is_finished'     => 0,
-					'total_processed' => $total_processed,
-					'total_items'     => $total_items,
-					'percentage'      => $percentage,
-				) );
-			} else {
-				$success_message = apply_filters( 'dg_batch_item_success_message', 'Processed item with id ' . $next_item->id, $next_item );
-				wp_send_json_success( array(
-					'message'         => $success_message,
-					'is_finished'     => 0,
-					'total_processed' => $total_processed,
-					'total_items'     => $total_items,
-					'percentage'      => $percentage,
-				) );
-			}
-			exit;
+            exit;
 
-		}
-	}
+        }
+    }
 
-	/**
-	 * Used to restart the batch.
-	 * Just clear the data.
-	 */
-	public function restart_batch() {
-		// Check ajax referrer
-		if ( ! check_ajax_referer( WP_Batch_Processor_Admin::NONCE, 'nonce', false ) ) {
-			wp_send_json_error( array(
-				'message' => 'Permission denied.',
-			) );
-			exit;
-		}
-		// Check the capability.
-		if ( ! current_user_can( WP_Batch_Processor_Admin::CAPABILITY ) ) {
-			wp_send_json_error( array(
-				'message' => 'Permission denied.',
-			), 403 );
-			exit;
-		}
-		// Validate the batch id.
-		// An absent id and an id no batch has are both answered 'Invalid batch id', so a request cannot tell the two apart.
-		$batch_id = isset( $_REQUEST['batch_id'] ) ? $_REQUEST['batch_id'] : false; // @pest-mutate-ignore: FalseToTrue
-		if ( ! $batch_id ) {
-			wp_send_json_error( array(
-				'message' => 'Invalid batch id',
-			) );
-			exit;
-		}
-		// Get the batch object
-		$batch = WP_Batch_Processor::get_instance()->get_batch( $batch_id );
+    /**
+     * Used to restart the batch.
+     * Just clear the data.
+     */
+    public function restart_batch(): void
+    {
+        // Check ajax referrer
+        if (! check_ajax_referer(WP_Batch_Processor_Admin::NONCE, 'nonce', false)) {
+            wp_send_json_error([
+                'message' => 'Permission denied.',
+            ]);
+            exit;
+        }
 
-		// No registered batch has this id.
-		if ( ! $batch ) {
-			wp_send_json_error( array(
-				'message' => 'Invalid batch id',
-			) );
-			exit;
-		}
-		// Restart the batch.
-		$batch->restart();
-		// Send json
-		wp_send_json_success();
-	}
+        // Check the capability.
+        if (! current_user_can(WP_Batch_Processor_Admin::CAPABILITY)) {
+            wp_send_json_error([
+                'message' => 'Permission denied.',
+            ], 403);
+            exit;
+        }
+
+        // Validate the batch id.
+        // An absent id and an id no batch has are both answered 'Invalid batch id', so a request cannot tell the two apart.
+        $batch_id = $_REQUEST['batch_id'] ?? false; // @pest-mutate-ignore: FalseToTrue
+        if (! $batch_id) {
+            wp_send_json_error([
+                'message' => 'Invalid batch id',
+            ]);
+            exit;
+        }
+
+        // Get the batch object
+        $batch = WP_Batch_Processor::get_instance()->get_batch($batch_id);
+
+        // No registered batch has this id.
+        if (! $batch) {
+            wp_send_json_error([
+                'message' => 'Invalid batch id',
+            ]);
+            exit;
+        }
+
+        // Restart the batch.
+        $batch->restart();
+        // Send json
+        wp_send_json_success();
+    }
 }
 
 // Init

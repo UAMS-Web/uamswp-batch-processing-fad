@@ -98,7 +98,7 @@ it('builds the batch registry as the processor file loads', function (): void {
 });
 
 describe('the list table file', function (): void {
-    it('requires WordPress\' list table class when it is not loaded yet', function (): void {
+    it("requires WordPress' list table class when it is not loaded yet", function (): void {
         $abspath = sys_get_temp_dir().'/bp-load-time-'.bin2hex(random_bytes(4)).'/';
         mkdir($abspath.'wp-admin/includes', 0777, true);
         file_put_contents($abspath.'wp-admin/includes/class-wp-list-table.php', '<?php class WP_List_Table { const SOURCE = "wordpress"; public function __construct($args = []) {} }');

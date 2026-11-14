@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 use Brain\Monkey\Functions;
 
+use function Brain\Monkey\Functions\when;
+
 beforeEach(function (): void {
     $_GET = [];
     forget_singleton(WP_Batch_Processor::class);
@@ -60,6 +62,7 @@ describe('column_default', function (): void {
         $batch = new FakeBatch('b', [1, 2, 3]);
         $batch->title = 'My batch';
         $batch->mark_as_processed(1);
+
         $table = new WP_BP_List_Table;
 
         expect($table->column_default($batch, 'title'))->toBe('My batch')
@@ -79,10 +82,11 @@ describe('column_default', function (): void {
 });
 
 it('links the title to the batch view and adds a Manage row action', function (): void {
-    Functions\when('admin_url')->alias(fn (string $path): string => 'https://example.test/wp-admin/'.$path);
+    when('admin_url')->alias(fn (string $path): string => 'https://example.test/wp-admin/'.$path);
     $batch = new FakeBatch('b');
     $batch->id = 7;
     $batch->title = 'My batch';
+
     $url = 'https://example.test/wp-admin/admin.php?page=dg-batches&action=view&id=7';
 
     expect((new WP_BP_List_Table)->column_title($batch))->toBe(

@@ -9,9 +9,12 @@
 
 declare(strict_types=1);
 
-use Brain\Monkey\Actions;
-use Brain\Monkey\Filters;
 use Brain\Monkey\Functions;
+
+use function Brain\Monkey\Actions\expectAdded;
+use function Brain\Monkey\Actions\expectDone;
+use function Brain\Monkey\Filters\expectApplied;
+use function Brain\Monkey\Functions\when;
 
 /**
  * Builds a fresh admin instance, as WordPress does once at load.
@@ -43,9 +46,9 @@ it('hooks the menu, the script gate and the setup when it is built', function ()
     $callbackNamed = fn (string $method) => Mockery::on(
         fn ($callback): bool => is_array($callback) && $callback[0] instanceof WP_Batch_Processor_Admin && $callback[1] === $method
     );
-    Actions\expectAdded('admin_menu')->once()->with($callbackNamed('admin_menu'));
-    Actions\expectAdded('admin_enqueue_scripts')->once()->with($callbackNamed('enqueue_scripts'));
-    Actions\expectAdded('init')->once()->with($callbackNamed('setup'), 0);
+    expectAdded('admin_menu')->once()->with($callbackNamed('admin_menu'));
+    expectAdded('admin_enqueue_scripts')->once()->with($callbackNamed('enqueue_scripts'));
+    expectAdded('init')->once()->with($callbackNamed('setup'), 0);
 
     fresh_admin();
 });
@@ -53,34 +56,34 @@ it('hooks the menu, the script gate and the setup when it is built', function ()
 describe('setup', function (): void {
     it('registers batches on the batches screen', function (): void {
         $_GET['page'] = 'dg-batches';
-        Actions\expectDone('wp_batch_processing_init')->once();
+        expectDone('wp_batch_processing_init')->once();
 
         fresh_admin()->setup();
     });
 
     it('registers batches for the process and restart ajax actions', function (string $action): void {
         $_REQUEST['action'] = $action;
-        Actions\expectDone('wp_batch_processing_init')->once();
+        expectDone('wp_batch_processing_init')->once();
 
         fresh_admin()->setup();
     })->with(['process' => ['dg_process_next_batch_item'], 'restart' => ['dg_restart_batch']]);
 
     it('registers nothing on any other screen', function (): void {
         $_GET['page'] = 'some-other-page';
-        Actions\expectDone('wp_batch_processing_init')->never();
+        expectDone('wp_batch_processing_init')->never();
 
         fresh_admin()->setup();
     });
 
     it('registers nothing for any other ajax action', function (): void {
         $_REQUEST['action'] = 'heartbeat';
-        Actions\expectDone('wp_batch_processing_init')->never();
+        expectDone('wp_batch_processing_init')->never();
 
         fresh_admin()->setup();
     });
 
     it('registers nothing on a request that names no page and no action', function (): void {
-        Actions\expectDone('wp_batch_processing_init')->never();
+        expectDone('wp_batch_processing_init')->never();
 
         fresh_admin()->setup();
     });
@@ -139,9 +142,9 @@ describe('plugin_page', function (): void {
 
 describe('enqueue_scripts', function (): void {
     beforeEach(function (): void {
-        Functions\when('admin_url')->alias(fn (string $path): string => 'https://example.test/wp-admin/'.$path);
-        Functions\when('wp_create_nonce')->alias(fn (string $action): string => 'nonce-for-'.$action);
-        Functions\when('current_user_can')->justReturn(true);
+        when('admin_url')->alias(fn (string $path): string => 'https://example.test/wp-admin/'.$path);
+        when('wp_create_nonce')->alias(fn (string $action): string => 'nonce-for-'.$action);
+        when('current_user_can')->justReturn(true);
 
         $_GET = ['page' => 'dg-batches', 'action' => 'view', 'id' => 'fake'];
     });
@@ -150,8 +153,8 @@ describe('enqueue_scripts', function (): void {
      * An admin whose menu was added, so it knows its page hook.
      */
     $admin_with_menu = function (): WP_Batch_Processor_Admin {
-        Functions\when('add_menu_page')->justReturn('toplevel_page_dg-batches');
-        Functions\when('add_submenu_page')->justReturn('toplevel_page_dg-batches');
+        when('add_menu_page')->justReturn('toplevel_page_dg-batches');
+        when('add_submenu_page')->justReturn('toplevel_page_dg-batches');
 
         $admin = fresh_admin();
         $admin->admin_menu();
@@ -169,7 +172,7 @@ describe('enqueue_scripts', function (): void {
             filemtime(WP_BP_PATH.'assets/processor.js'),
             true
         );
-        Filters\expectApplied('wp_batch_processing_delay')->once()->with(0)->andReturn(3);
+        expectApplied('wp_batch_processing_delay')->once()->with(0)->andReturn(3);
         Functions\expect('wp_localize_script')->once()->with('wp-batch-processing', 'DgBatchRunner', [
             'ajax_url' => 'https://example.test/wp-admin/admin-ajax.php',
             'nonce' => 'nonce-for-wp-batch-processing',
@@ -184,7 +187,7 @@ describe('enqueue_scripts', function (): void {
     it('sends batch id 0 when the query string carries none', function () use ($admin_with_menu): void {
         $admin = $admin_with_menu();
         unset($_GET['id']);
-        Functions\when('wp_enqueue_script')->justReturn(null);
+        when('wp_enqueue_script')->justReturn();
         Functions\expect('wp_localize_script')->once()->with(
             'wp-batch-processing',
             'DgBatchRunner',
@@ -216,7 +219,7 @@ describe('enqueue_scripts', function (): void {
 
     it('enqueues nothing for a user without the capability', function () use ($admin_with_menu): void {
         $admin = $admin_with_menu();
-        Functions\when('current_user_can')->justReturn(false);
+        when('current_user_can')->justReturn(false);
         Functions\expect('wp_enqueue_script')->never();
 
         $admin->enqueue_scripts('toplevel_page_dg-batches');

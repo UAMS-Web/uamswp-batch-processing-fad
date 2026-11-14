@@ -164,6 +164,18 @@ node .claude/skills/local-ci/local-ci.mjs
 
 Name every test file `*Test.php`, or the suite does not pick it up.
 
+### Code quality
+
+Rector, PHPStan (with the WordPress extension and stubs) and Pint from the shared code-quality standard are development dependencies only, and each is a runner job and a Composer script:
+
+| Tool | Check | Fix |
+| --- | --- | --- |
+| Rector | `composer test:refactor` | `composer refactor` |
+| PHPStan | `composer stan` | raise `level` in `phpstan.neon.dist` one level per change |
+| Pint | `composer test:pint` | `composer pint` |
+
+PHPStan starts at level 0, the highest level the code passes today, and rises one level per change. The two Advanced Custom Fields functions the batches call are declared for it in `phpstan-stubs.php`.
+
 ### Reading the runner's verdict
 
 The runner selects jobs from the branch's diff against `origin/master`, runs each on the local PHP toolchain, and ends with a summary block that names the validated commit and lists every job as `PASS`, `FAIL` or `SKIPPED`. A failing job fails the run: the exit status is non-zero exactly when the summary says a job failed, and the summary is what to read. Write the run to a file and read the block at the end:

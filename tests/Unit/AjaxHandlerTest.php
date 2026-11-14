@@ -13,8 +13,11 @@
 declare(strict_types=1);
 
 use Brain\Monkey\Actions;
-use Brain\Monkey\Filters;
 use Brain\Monkey\Functions;
+
+use function Brain\Monkey\Actions\expectAdded;
+use function Brain\Monkey\Filters\expectApplied;
+use function Brain\Monkey\Functions\when;
 
 /**
  * Runs a handler method and returns what it sent.
@@ -23,8 +26,8 @@ function handler_sends(string $method): JsonSent
 {
     try {
         WP_Batch_Processing_Ajax_Handler::get_instance()->{$method}();
-    } catch (JsonSent $sent) {
-        return $sent;
+    } catch (JsonSent $jsonSent) {
+        return $jsonSent;
     }
 
     throw new LogicException("{$method}() sent nothing.");
@@ -37,24 +40,24 @@ beforeEach(function (): void {
     forget_singleton(WP_Batch_Processing_Ajax_Handler::class);
     forget_singleton(WP_Batch_Processor::class);
 
-    Functions\when('wp_send_json_error')->alias(function ($data = null, $status = null): never {
+    when('wp_send_json_error')->alias(function ($data = null, $status = null): never {
         throw new JsonSent(false, $data, $status);
     });
-    Functions\when('wp_send_json_success')->alias(function ($data = null, $status = null): never {
+    when('wp_send_json_success')->alias(function ($data = null, $status = null): never {
         throw new JsonSent(true, $data, $status);
     });
-    Functions\when('is_wp_error')->alias(fn ($value): bool => $value instanceof WP_Error);
+    when('is_wp_error')->alias(fn ($value): bool => $value instanceof WP_Error);
 
     // A user who passes both checks unless a test sets one of these to false. Each call is recorded.
     $this->nonceValid = true;
     $this->userCan = true;
     $this->calls = [];
-    Functions\when('check_ajax_referer')->alias(function (...$args) {
+    when('check_ajax_referer')->alias(function (...$args): int|false {
         $this->calls['check_ajax_referer'][] = $args;
 
         return $this->nonceValid ? 1 : false;
     });
-    Functions\when('current_user_can')->alias(function (...$args) {
+    when('current_user_can')->alias(function (...$args) {
         $this->calls['current_user_can'][] = $args;
 
         return $this->userCan;
@@ -70,10 +73,10 @@ afterEach(function (): void {
 });
 
 it('registers both actions on the admin-ajax hooks when it is built', function (): void {
-    Actions\expectAdded('wp_ajax_dg_process_next_batch_item')->once()->with(Mockery::on(
+    expectAdded('wp_ajax_dg_process_next_batch_item')->once()->with(Mockery::on(
         fn ($callback): bool => is_array($callback) && $callback[0] instanceof WP_Batch_Processing_Ajax_Handler && $callback[1] === 'process_next_item'
     ));
-    Actions\expectAdded('wp_ajax_dg_restart_batch')->once()->with(Mockery::on(
+    expectAdded('wp_ajax_dg_restart_batch')->once()->with(Mockery::on(
         fn ($callback): bool => is_array($callback) && $callback[0] instanceof WP_Batch_Processing_Ajax_Handler && $callback[1] === 'restart_batch'
     ));
 
@@ -152,7 +155,7 @@ describe('process_next_item', function (): void {
         WP_Batch_Processor::get_instance()->register($batch);
         $_REQUEST['batch_id'] = 'fake';
 
-        Filters\expectApplied('dg_batch_item_success_message')->once()->with('Processed item with id 1', Mockery::type(WP_Batch_Item::class));
+        expectApplied('dg_batch_item_success_message')->once()->with('Processed item with id 1', Mockery::type(WP_Batch_Item::class));
 
         $sent = handler_sends('process_next_item');
 
@@ -171,7 +174,7 @@ describe('process_next_item', function (): void {
     it('sends the success message the filter returns', function (): void {
         WP_Batch_Processor::get_instance()->register(new FakeBatch('fake', [1]));
         $_REQUEST['batch_id'] = 'fake';
-        Filters\expectApplied('dg_batch_item_success_message')->once()->andReturn('Done one');
+        expectApplied('dg_batch_item_success_message')->once()->andReturn('Done one');
 
         expect(handler_sends('process_next_item')->data['message'])->toBe('Done one');
     });
@@ -182,7 +185,7 @@ describe('process_next_item', function (): void {
         WP_Batch_Processor::get_instance()->register($batch);
         $_REQUEST['batch_id'] = 'fake';
 
-        Filters\expectApplied('dg_batch_item_error_message')->once()->with('Error processing item with id 1: boom', Mockery::type(WP_Batch_Item::class));
+        expectApplied('dg_batch_item_error_message')->once()->with('Error processing item with id 1: boom', Mockery::type(WP_Batch_Item::class));
 
         $sent = handler_sends('process_next_item');
 
@@ -203,7 +206,7 @@ describe('process_next_item', function (): void {
         $batch->result = new WP_Error('bad', 'boom');
         WP_Batch_Processor::get_instance()->register($batch);
         $_REQUEST['batch_id'] = 'fake';
-        Filters\expectApplied('dg_batch_item_error_message')->once()->andReturn('Custom failure');
+        expectApplied('dg_batch_item_error_message')->once()->andReturn('Custom failure');
 
         expect(handler_sends('process_next_item')->data['message'])->toBe('Custom failure');
     });
@@ -215,7 +218,7 @@ describe('process_next_item', function (): void {
         WP_Batch_Processor::get_instance()->register($batch);
         $_REQUEST['batch_id'] = 'fake';
 
-        Filters\expectApplied('dg_batch_item_error_message')->once()->with('Processing finished.');
+        expectApplied('dg_batch_item_error_message')->once()->with('Processing finished.');
 
         $sent = handler_sends('process_next_item');
 

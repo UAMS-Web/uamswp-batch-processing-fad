@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /********************************************************************
  * Copyright (C) 2019 Darko Gjorgjijoski (https://darkog.com)
  *
@@ -21,47 +24,40 @@
 // The direct-access guard runs as the file loads, before any test, and dies when it fires, so no test can reach it
 // in this process; tests/Unit/LoadTimeTest.php pins it in a subprocess.
 // @pest-mutate-ignore: RemoveNot
-if ( ! defined( 'ABSPATH' ) ) { // @pest-mutate-ignore: IfNegated
-	die( 'Direct access is not allowed.' );
+if (! defined('ABSPATH')) { // @pest-mutate-ignore: IfNegated
+    exit('Direct access is not allowed.');
 }
 
 /**
  * Class WP_Batch_Item
  */
-class WP_Batch_Item {
+class WP_Batch_Item
+{
+    /**
+     * WP_Batch_Item constructor
+     *
+     * @param  int  $id
+     * @param  mixed  $data
+     */
+    public function __construct(
+        /**
+         * Unique identifier of the batch item
+         */
+        public $id,
+        /**
+         * Additional data for the item
+         */
+        public $data = null
+    ) {}
 
-	/**
-	 * Unique identifier of the batch item
-	 * @var int
-	 */
-	public $id;
-
-	/**
-	 * Additional data for the item
-	 * @var mixed
-	 */
-	public $data;
-
-	/**
-	 * WP_Batch_Item constructor
-	 *
-	 * @param $id
-	 * @param $data
-	 */
-	public function __construct($id, $data = null) {
-		$this->id = $id;
-		$this->data = $data;
-	}
-
-	/**
-	 * Return data value
-	 *
-	 * @param $key
-	 * @param null $default
-	 *
-	 * @return mixed|null
-	 */
-	public function get_value($key, $default = null) {
-		return isset($this->data[$key]) ? $this->data[$key] : $default;
-	}
+    /**
+     * Return data value
+     *
+     *
+     * @return mixed|null
+     */
+    public function get_value($key, $default = null)
+    {
+        return $this->data[$key] ?? $default;
+    }
 }

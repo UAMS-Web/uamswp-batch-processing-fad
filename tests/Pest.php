@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 use Brain\Monkey\Functions;
 
+use function Brain\Monkey\Functions\stubTranslationFunctions;
+use function Brain\Monkey\Functions\when;
 use function Brain\Monkey\setUp;
 use function Brain\Monkey\tearDown;
 
@@ -30,7 +32,7 @@ uses()
         setUp();
 
         // __(), _e(), esc_html__() and the rest return or echo their text unchanged.
-        Functions\stubTranslationFunctions();
+        stubTranslationFunctions();
 
         // No queued query responses or recorded query arguments carry over from the last test.
         WP_Query::reset();
@@ -66,8 +68,8 @@ function fake_post_queries(array ...$idLists): void
 {
     WP_Query::$responses = $idLists;
 
-    Functions\when('get_the_ID')->alias(fn (): int => WP_Query::$currentId);
-    Functions\when('wp_reset_postdata')->alias(function (): void {
+    when('get_the_ID')->alias(fn (): int => WP_Query::$currentId);
+    when('wp_reset_postdata')->alias(function (): void {
         $GLOBALS['bp_reset_postdata_calls']++;
     });
 }
@@ -116,15 +118,15 @@ function record_warnings(callable $callback): array
  */
 function stub_options(array &$store): void
 {
-    Functions\when('get_option')->alias(function (string $name, $default = false) use (&$store) {
+    when('get_option')->alias(function (string $name, $default = false) use (&$store) {
         return array_key_exists($name, $store) ? $store[$name] : $default;
     });
-    Functions\when('update_option')->alias(function (string $name, $value) use (&$store): bool {
+    when('update_option')->alias(function (string $name, $value) use (&$store): bool {
         $store[$name] = $value;
 
         return true;
     });
-    Functions\when('delete_option')->alias(function (string $name) use (&$store): bool {
+    when('delete_option')->alias(function (string $name) use (&$store): bool {
         unset($store[$name]);
 
         return true;
