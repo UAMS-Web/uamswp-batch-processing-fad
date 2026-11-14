@@ -18,7 +18,10 @@
  * along with WP Batch Processing. If not, see <https://www.gnu.org/licenses/>.
  **********************************************************************/
 
-if ( ! defined( 'ABSPATH' ) ) {
+// The direct-access guard runs as the file loads, before any test, and dies when it fires, so no test can reach it
+// in this process; tests/Unit/Fad/LoadTimeTest.php pins it in a subprocess.
+// @pest-mutate-ignore: RemoveNot
+if ( ! defined( 'ABSPATH' ) ) { // @pest-mutate-ignore: IfNegated
 	die( 'Direct access is not allowed.' );
 }
 
@@ -115,7 +118,8 @@ if ( class_exists( 'WP_Batch' ) ) {
 				$excerpt = get_field('treatment_procedure_short_desc', $term);
 				// $description = $term->description; //Description
 
-				$new_id = (int)$t_id + $post_id_offset;
+				// WordPress term ids are integers, so the cast changes nothing a test can observe.
+				$new_id = (int)$t_id + $post_id_offset; // @pest-mutate-ignore: RemoveIntegerCast
 				
 				//Above finds all the data from Custom Taxonomy and associated metadata.
 				//We make a new post for each item, using same details from Taxonomy
@@ -201,7 +205,8 @@ if ( class_exists( 'WP_Batch' ) ) {
 		WP_Batch_Processor::get_instance()->register( $batch );
 	}
 
-	add_action( 'wp_batch_processing_init', 'treatment_batch_processing_init', 15, 1 );
+	// Registers the batch as the file loads, before any test; tests/Unit/Fad/LoadTimeTest.php pins the hook, its priority and its argument count.
+	add_action( 'wp_batch_processing_init', 'treatment_batch_processing_init', 15, 1 ); // @pest-mutate-ignore: DecrementInteger, IncrementInteger, RemoveFunctionCall
 }
 
 
