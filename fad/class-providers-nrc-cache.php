@@ -119,14 +119,17 @@ if (class_exists('WP_Batch')) {
                     $request = get_transient($cache_key);
 
                     if ($request === false) {
-                        $request = wp_remote_retrieve_body(wp_remote_get($url));
+                        $response = wp_remote_get($url);
 
-                        if (! is_wp_error($request)) {
+                        // A failed request is a WP_Error, and wp_remote_retrieve_body() reads one as an empty string,
+                        // so the error has to be caught on the response: checked on the body it is never true, and a
+                        // failure would be cached for 30 days as an empty body.
+                        if (! is_wp_error($response)) {
                             // Cache failures for a short time, will speed up page rendering in the event of remote failure.
                             // set_transient( $cache_key, $request, MINUTE_IN_SECONDS * 15 );
                             // } else {
                             // Success, cache for a longer time.
-                            set_transient($cache_key, $request, DAY_IN_SECONDS * 30);
+                            set_transient($cache_key, wp_remote_retrieve_body($response), DAY_IN_SECONDS * 30);
                         }
                     }
 
