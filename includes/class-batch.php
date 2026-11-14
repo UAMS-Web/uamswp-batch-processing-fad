@@ -161,7 +161,16 @@ abstract class WP_Batch
      */
     public function get_processed_items()
     {
-        return get_option($this->get_db_identifier(), []);
+        $stored = get_option($this->get_db_identifier(), []);
+
+        $ids = [];
+        foreach (is_array($stored) ? $stored : [] as $id) {
+            if (is_int($id) || is_string($id)) {
+                $ids[] = $id;
+            }
+        }
+
+        return $ids;
     }
 
     /**

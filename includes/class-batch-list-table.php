@@ -60,7 +60,9 @@ class WP_BP_List_Table extends WP_List_Table
      */
     public function get_table_classes(): array
     {
-        return ['widefat', 'fixed', 'striped', $this->_args['plural']];
+        $plural = $this->_args['plural'];
+
+        return ['widefat', 'fixed', 'striped', is_string($plural) ? $plural : ''];
     }
 
     /**
@@ -157,7 +159,7 @@ class WP_BP_List_Table extends WP_List_Table
         $hidden = [];
         $sortable = $this->get_sortable_columns();
         $this->_column_headers = [$columns, $hidden, $sortable];
-        $this->page_status = isset($_GET['status']) ? sanitize_text_field($_GET['status']) : '2';
+        $this->page_status = isset($_GET['status']) && is_string($_GET['status']) ? sanitize_text_field($_GET['status']) : '2';
 
         $this->items = WP_Batch_Processor::get_instance()->get_batches();
     }

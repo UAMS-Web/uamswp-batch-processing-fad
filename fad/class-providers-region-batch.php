@@ -103,7 +103,7 @@ if (class_exists('WP_Batch')) {
         public function process($item): bool
         {
 
-            $p_id = $item->get_value('id');
+            $p_id = $item->get_int_value('id');
 
             // error_log("ID: ".$t_id);
 
@@ -114,7 +114,7 @@ if (class_exists('WP_Batch')) {
                 if ($items) {
                     // Defined before the loop, so the update below never reads an undefined variable when $items holds nothing to loop over.
                     $region = null;
-                    foreach ($items as $item) {
+                    foreach (WP_BP_Helper::acf_posts($items) as $item) {
                         $region = get_field('location_region', $item);
                         // break loop after first iteration = primary location
                         break;

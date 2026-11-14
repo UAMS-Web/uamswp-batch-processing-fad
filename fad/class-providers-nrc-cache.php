@@ -103,14 +103,14 @@ if (class_exists('WP_Batch')) {
         public function process($item): bool
         {
 
-            $p_id = $item->get_value('id');
+            $p_id = $item->get_int_value('id');
 
             // error_log("ID: ".$t_id);
 
             if (! empty($p_id)) {
 
                 // Get NRC Data
-                $npi = get_field('physician_npi', $p_id);
+                $npi = WP_BP_Helper::acf_string(get_field('physician_npi', $p_id));
 
                 if (! empty($npi)) {
                     // Update Cache

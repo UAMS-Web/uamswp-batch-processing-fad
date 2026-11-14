@@ -61,7 +61,7 @@ abstract class UnitTestCase extends TestCase
     /**
      * The calls the AJAX handler test records.
      *
-     * @var array<int|string, mixed>
+     * @var array<string, list<array<int|string, mixed>>>
      */
     public array $calls = [];
 

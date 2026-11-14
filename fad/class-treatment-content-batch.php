@@ -97,7 +97,7 @@ if (class_exists('WP_Batch')) {
         public function process($item): bool
         {
 
-            $p_id = $item->get_value('id');
+            $p_id = $item->get_int_value('id');
 
             // error_log("ID: ".$t_id);
 
@@ -108,7 +108,7 @@ if (class_exists('WP_Batch')) {
                 if ($content) {
                     wp_update_post([
                         'ID' => $p_id,
-                        'post_content' => $content,
+                        'post_content' => WP_BP_Helper::acf_string($content),
                     ]);
                 }
 

@@ -98,7 +98,7 @@ if (class_exists('WP_Batch')) {
         public function process($item): bool
         {
 
-            $t_id = $item->get_value('id');
+            $t_id = $item->get_int_value('id');
 
             error_log('ID: '.$t_id);
 
@@ -124,8 +124,7 @@ if (class_exists('WP_Batch')) {
                 $excerpt = get_field('condition_short_desc', $term);
                 // $description = $term->description; //Description
 
-                // WordPress term ids are integers, so the cast changes nothing a test can observe.
-                $new_id = (int) $t_id + $post_id_offset; // @pest-mutate-ignore: RemoveIntegerCast
+                $new_id = $t_id + $post_id_offset;
 
                 // Above finds all the data from Custom Taxonomy and associated metadata.
                 // We make a new post for each item, using same details from Taxonomy
@@ -133,8 +132,8 @@ if (class_exists('WP_Batch')) {
                     $new_post = [
                         'import_id' => $new_id,
                         'post_title' => $name,
-                        'post_content' => $content,
-                        'post_excerpt' => $excerpt,
+                        'post_content' => WP_BP_Helper::acf_string($content),
+                        'post_excerpt' => WP_BP_Helper::acf_string($excerpt),
                         'post_name' => $slug,
                         'post_status' => 'publish',
                         'post_type' => $post_type,
@@ -145,16 +144,8 @@ if (class_exists('WP_Batch')) {
 
                     // Insert meta where it exists. Note that my meta is stored like so: http://pippinsplugins.com/adding-custom-meta-fields-to-taxonomies/
                     // if (!empty($term_meta['artist_showcase_meta'])) : update_post_meta ($post_id, '_cmb_showcase', $term_meta['artist_showcase_meta']); endif;
-                    $meta = get_term_meta($t_id);
-                    if (! empty($meta)) {
-                        foreach ($meta as $key => $val) {
-                            $v = $val[0];
-                            if (is_serialized($v)) {
-                                $v = unserialize($v);
-                            }
-
-                            update_post_meta($post_id, $key, $v);
-                        }
+                    foreach (WP_BP_Helper::first_meta_values(get_term_meta($t_id)) as $key => $v) {
+                        update_post_meta($post_id, $key, $v);
                     }
 
                     // Custom Fields
@@ -167,7 +158,7 @@ if (class_exists('WP_Batch')) {
                     $items = get_field($acf_field, $term);
                     if ($items) {
                         $items_cpt = [];
-                        foreach ($items as $item) {
+                        foreach (WP_BP_Helper::acf_ids($items) as $item) {
                             $item_id = intval($item) + $acf_offset;
                             $items_cpt[] = strval($item_id);
                         }

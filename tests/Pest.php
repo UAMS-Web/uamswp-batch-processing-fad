@@ -44,7 +44,8 @@ function fake_post_queries(array ...$idLists): void
 
     when('get_the_ID')->alias(fn (): int => WP_Query::$currentId);
     when('wp_reset_postdata')->alias(function (): void {
-        $GLOBALS['bp_reset_postdata_calls']++;
+        $calls = $GLOBALS['bp_reset_postdata_calls'] ?? 0;
+        $GLOBALS['bp_reset_postdata_calls'] = (is_int($calls) ? $calls : 0) + 1;
     });
 }
 
@@ -141,7 +142,7 @@ function record_warnings(callable $callback): array
         $warnings[] = $message;
 
         return true;
-    }, E_WARNING);
+    }, E_WARNING | E_USER_WARNING);
 
     try {
         $callback();

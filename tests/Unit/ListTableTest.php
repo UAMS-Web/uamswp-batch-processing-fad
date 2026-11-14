@@ -35,6 +35,13 @@ it('styles the table with the core classes plus its plural name', function (): v
     expect((new WP_BP_List_Table)->get_table_classes())->toBe(['widefat', 'fixed', 'striped', 'batches']);
 });
 
+it('leaves the plural name out of the classes when it is not a string', function (): void {
+    $table = new WP_BP_List_Table;
+    (new ReflectionProperty(WP_BP_List_Table::class, '_args'))->setValue($table, ['plural' => 5]);
+
+    expect($table->get_table_classes())->toBe(['widefat', 'fixed', 'striped', '']);
+});
+
 it('says there are no batches when the list is empty', function (): void {
     ob_start();
     (new WP_BP_List_Table)->no_items();
@@ -110,6 +117,16 @@ describe('prepare_items', function (): void {
     });
 
     it('defaults the page status to 2', function (): void {
+        $table = new WP_BP_List_Table;
+
+        $table->prepare_items();
+
+        expect($table->page_status)->toBe('2');
+    });
+
+    it('defaults the page status to 2 when the query string holds an array', function (): void {
+        $_GET['status'] = ['5'];
+        Functions\expect('sanitize_text_field')->never();
         $table = new WP_BP_List_Table;
 
         $table->prepare_items();
