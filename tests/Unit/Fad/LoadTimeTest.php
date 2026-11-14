@@ -49,7 +49,7 @@ function fad_base_classes(): string
 
 dataset('fad files', function () {
     foreach (glob(dirname(__DIR__, 3).'/fad/class-*.php') as $path) {
-        preg_match("/add_action\( 'wp_batch_processing_init', '(\w+)', 15, 1 \);/", (string) file_get_contents($path), $matches);
+        preg_match("/add_action\(\s*'wp_batch_processing_init',\s*'(\w+)',\s*15,\s*1\s*\);/", (string) file_get_contents($path), $matches);
 
         yield basename($path) => [$path, $matches[1]];
     }

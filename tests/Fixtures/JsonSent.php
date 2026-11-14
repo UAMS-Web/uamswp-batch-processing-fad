@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 final class JsonSent extends RuntimeException
 {
-    /** @param mixed $data */
     public function __construct(public readonly bool $success, public readonly mixed $data, public readonly ?int $status)
     {
         parent::__construct($success ? 'success' : 'error');

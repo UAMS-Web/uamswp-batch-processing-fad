@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /********************************************************************
  * Copyright (C) 2019 Darko Gjorgjijoski (https://darkog.com)
  *
@@ -18,98 +20,96 @@
  * along with WP Batch Processing. If not, see <https://www.gnu.org/licenses/>.
  **********************************************************************/
 
-if ( ! defined( 'ABSPATH' ) ) {
-	die( 'Direct access is not allowed.' );
+if (! defined('ABSPATH')) {
+    exit('Direct access is not allowed.');
 }
 
-if ( class_exists( 'WP_Batch' ) ) {
+if (class_exists('WP_Batch')) {
 
-	/**
-	 * Class MY_Example_Batch
-	 */
-	class MY_Example_Batch extends WP_Batch {
+    /**
+     * Class MY_Example_Batch
+     */
+    class MY_Example_Batch extends WP_Batch
+    {
+        /**
+         * Unique identifier of each batch
+         *
+         * @var string
+         */
+        public $id = 'email_post_authors';
 
-		/**
-		 * Unique identifier of each batch
-		 * @var string
-		 */
-		public $id = 'email_post_authors';
+        /**
+         * Describe the batch
+         *
+         * @var string
+         */
+        public $title = 'Email Post Authors';
 
-		/**
-		 * Describe the batch
-		 * @var string
-		 */
-		public $title = 'Email Post Authors';
+        /**
+         * To setup the batch data use the push() method to add WP_Batch_Item instances to the queue.
+         *
+         * Note: If the operation of obtaining data is expensive, cache it to avoid slowdowns.
+         */
+        public function setup(): void
+        {
 
-		/**
-		 * To setup the batch data use the push() method to add WP_Batch_Item instances to the queue.
-		 *
-		 * Note: If the operation of obtaining data is expensive, cache it to avoid slowdowns.
-		 *
-		 * @return void
-		 */
-		public function setup() {
+            $users = get_users([
+                'number' => '40',
+                'role' => 'author',
+            ]);
 
-			$users = get_users( array(
-				'number' => '40',
-				'role'   => 'author',
-			) );
+            foreach ($users as $user) {
+                $this->push(new WP_Batch_Item($user->ID, ['author_id' => $user->ID]));
+            }
+        }
 
-			foreach ( $users as $user ) {
-				$this->push( new WP_Batch_Item( $user->ID, array( 'author_id' => $user->ID ) ) );
-			}
-		}
+        /**
+         * Handles processing of batch item. One at a time.
+         *
+         * In order to work it correctly you must return values as follows:
+         *
+         * - TRUE - If the item was processed successfully.
+         * - WP_Error instance - If there was an error. Add message to display it in the admin area.
+         *
+         * @param  WP_Batch_Item  $item
+         */
+        public function process($item): WP_Error|true
+        {
 
-		/**
-		 * Handles processing of batch item. One at a time.
-		 *
-		 * In order to work it correctly you must return values as follows:
-		 *
-		 * - TRUE - If the item was processed successfully.
-		 * - WP_Error instance - If there was an error. Add message to display it in the admin area.
-		 *
-		 * @param WP_Batch_Item $item
-		 *
-		 * @return bool|\WP_Error
-		 */
-		public function process( $item ) {
+            // Retrieve the custom data
+            $author_id = $item->get_value('author_id');
 
-			// Retrieve the custom data
-			$author_id = $item->get_value( 'author_id' );
+            // Return WP_Error if the item processing failed (In our case we simply skip author with user id 5)
+            if ($author_id == 5) {
+                return new WP_Error(302, 'Author skipped');
+            }
 
-			// Return WP_Error if the item processing failed (In our case we simply skip author with user id 5)
-			if ( $author_id == 5 ) {
-				return new WP_Error( 302, "Author skipped" );
-			}
+            // Do the expensive processing here. eg. Sending email.
+            // ...
 
-			// Do the expensive processing here. eg. Sending email.
-			// ...
+            // Return true if the item processing is successful.
+            return true;
+        }
 
-			// Return true if the item processing is successful.
-			return true;
-		}
+        /**
+         * Called when specific process is finished (all items were processed).
+         * This method can be overriden in the process class.
+         */
+        public function finish(): void
+        {
+            // Do something after process is finished.
+            // You have $this->items, or other data you can set.
+        }
+    }
 
-		/**
-		 * Called when specific process is finished (all items were processed).
-		 * This method can be overriden in the process class.
-		 * @return void
-		 */
-		public function finish() {
-			// Do something after process is finished.
-			// You have $this->items, or other data you can set.
-		}
+    /**
+     * Initialize the batches.
+     */
+    function wp_batch_processing_init(): void
+    {
+        $batch = new MY_Example_Batch;
+        WP_Batch_Processor::get_instance()->register($batch);
+    }
 
-	}
-
-	/**
-	 * Initialize the batches.
-	 */
-	function wp_batch_processing_init() {
-		$batch = new MY_Example_Batch();
-		WP_Batch_Processor::get_instance()->register( $batch );
-	}
-
-	add_action( 'wp_batch_processing_init', 'wp_batch_processing_init', 15, 1 );
+    add_action('wp_batch_processing_init', 'wp_batch_processing_init', 15, 1);
 }
-
-

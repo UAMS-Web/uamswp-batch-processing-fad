@@ -1,3 +1,5 @@
 <?php
 
-echo "Hello, " . $name;
+declare(strict_types=1);
+
+echo 'Hello, '.$name;

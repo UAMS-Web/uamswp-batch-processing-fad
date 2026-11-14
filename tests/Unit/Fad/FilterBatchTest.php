@@ -14,6 +14,8 @@ declare(strict_types=1);
 
 use Brain\Monkey\Functions;
 
+use function Brain\Monkey\Functions\when;
+
 beforeEach(function (): void {
     forget_singleton(WP_Batch_Processor::class);
 });
@@ -35,19 +37,20 @@ function run_filter_process(array $expertises, array $conditions, array $treatme
 {
     fake_post_queries([]);
     $batch = new FaD_Provider_Filter_Batch;
-    Functions\when('get_field')->alias(fn (string $name, int $post) => match ($name) {
+    when('get_field')->alias(fn (string $name, int $post): array|false => match ($name) {
         'field_physician_expertise' => $expertises,
         'field_physician_conditions_cpt' => $conditions,
         'field_physician_treatments_cpt' => $treatments,
         default => false,
     });
-    Functions\when('get_the_title')->alias(fn (int $post): string => "T{$post}");
+    when('get_the_title')->alias(fn (int $post): string => "T{$post}");
+
     $stored = [];
-    Functions\when('update_field')->alias(function (string $name, $value, int $post) use (&$stored): void {
+    when('update_field')->alias(function (string $name, $value, int $post) use (&$stored): void {
         $stored[] = [$name, $value, $post];
     });
 
-    $warnings = record_warnings(fn () => process_item($batch, 7, ['id' => 7]));
+    $warnings = record_warnings(fn (): mixed => process_item($batch, 7, ['id' => 7]));
 
     return ['stored' => $stored, 'warnings' => $warnings];
 }
@@ -126,14 +129,14 @@ describe('process', function (): void {
         fake_post_queries([]);
         $batch = new FaD_Provider_Filter_Batch;
         $read = [];
-        Functions\when('get_field')->alias(function (string $name, int $post) use (&$read): bool {
+        when('get_field')->alias(function (string $name, int $post) use (&$read): bool {
             $read[] = [$name, $post];
 
             return false;
         });
-        Functions\when('update_field')->justReturn(true);
+        when('update_field')->justReturn(true);
 
-        record_warnings(fn () => process_item($batch, 7, ['id' => 7]));
+        record_warnings(fn (): mixed => process_item($batch, 7, ['id' => 7]));
 
         expect($read)->toBe([
             ['field_physician_expertise', 7],
@@ -163,8 +166,8 @@ describe('process', function (): void {
     it('returns true', function (): void {
         fake_post_queries([]);
         $batch = new FaD_Provider_Filter_Batch;
-        Functions\when('get_field')->justReturn(false);
-        Functions\when('update_field')->justReturn(true);
+        when('get_field')->justReturn(false);
+        when('update_field')->justReturn(true);
 
         $result = null;
         record_warnings(function () use ($batch, &$result): void {

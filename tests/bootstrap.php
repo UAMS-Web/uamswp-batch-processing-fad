@@ -9,6 +9,9 @@
 
 declare(strict_types=1);
 
+use function Brain\Monkey\setUp;
+use function Brain\Monkey\tearDown;
+
 require_once __DIR__.'/../vendor/autoload.php';
 
 // Patchwork first, so a test can redefine functions declared in files loaded after it.
@@ -30,7 +33,7 @@ require_once __DIR__.'/Fixtures/wordpress-classes.php';
 
 // Load the files that define classes, never the main plugin file: it requires every batch and registers hooks at file scope.
 // Some of these files register hooks as they load (a singleton's init()), so load them with Brain Monkey up.
-Brain\Monkey\setUp();
+setUp();
 
 foreach ([
     'class-bp-helper',
@@ -49,18 +52,18 @@ foreach ([
 // Their process() methods call error_log() on some paths; send it to a file instead of the test output.
 ini_set('error_log', sys_get_temp_dir().'/uamswp-batch-processing-tests.log');
 
-Brain\Monkey\setUp();
+setUp();
 
 foreach (glob(__DIR__.'/../fad/class-*.php') as $file) {
     require_once $file;
 }
 
-Brain\Monkey\tearDown();
+tearDown();
 
 // A concrete batch for the tests; it extends WP_Batch, so it loads after the includes.
 require_once __DIR__.'/Fixtures/FakeBatch.php';
 require_once __DIR__.'/Fixtures/JsonSent.php';
 
-Brain\Monkey\tearDown();
+tearDown();
 
 // cspell:ignore ABSPATH
