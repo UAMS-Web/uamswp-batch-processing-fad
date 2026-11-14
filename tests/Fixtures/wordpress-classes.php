@@ -53,6 +53,9 @@ if (! class_exists('WP_Query')) {
 
         private int $cursor = -1;
 
+        /** How many times have_posts() was asked. */
+        private int $asked = 0;
+
         /** @param array<string, mixed> $args */
         public function __construct($args = [])
         {
@@ -60,8 +63,17 @@ if (! class_exists('WP_Query')) {
             $this->ids = array_shift(self::$responses) ?? [];
         }
 
+        /**
+         * Whether a post is left to visit. A loop that never calls the_post() would ask forever, so
+         * the stand-in fails after more questions than the list can account for, which turns a hang
+         * into a failing test.
+         */
         public function have_posts(): bool
         {
+            if (++$this->asked > count($this->ids) + 2) {
+                throw new LogicException('have_posts() was asked again without the_post() moving on.');
+            }
+
             return $this->cursor + 1 < count($this->ids);
         }
 
