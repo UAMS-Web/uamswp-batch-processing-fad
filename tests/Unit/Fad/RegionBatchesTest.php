@@ -138,11 +138,13 @@ describe('process, for the batches that store every region', function (): void {
 
 describe('process, for the provider batch', function (): void {
     beforeEach(function (): void {
+        /** @var UnitTestCase $this */
         fake_post_queries([]);
         $this->batch = new FaD_Provider_Region_Batch;
     });
 
     it('reads nothing and returns true for an item with no post id', function (): void {
+        /** @var UnitTestCase $this */
         Functions\expect('get_field')->never();
         Functions\expect('update_field')->never();
 
@@ -151,6 +153,7 @@ describe('process, for the provider batch', function (): void {
     });
 
     it('updates nothing when the provider has no locations', function (): void {
+        /** @var UnitTestCase $this */
         Functions\expect('get_field')->once()->with('physician_locations', 7)->andReturn(false);
         Functions\expect('update_field')->never();
 
@@ -158,6 +161,7 @@ describe('process, for the provider batch', function (): void {
     });
 
     it('stores only the region of the first location', function (): void {
+        /** @var UnitTestCase $this */
         $lookups = [];
         when('get_field')->alias(function (string $name, int $post) use (&$lookups): array|string {
             if ($name === 'physician_locations') {

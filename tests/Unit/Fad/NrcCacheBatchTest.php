@@ -85,11 +85,13 @@ describe('setup', function (): void {
 
 describe('process', function (): void {
     beforeEach(function (): void {
+        /** @var UnitTestCase $this */
         fake_post_queries([]);
         $this->batch = new FaD_Provider_Nrc_Cache;
     });
 
     it('reads nothing and returns true for an item with no post id', function (): void {
+        /** @var UnitTestCase $this */
         Functions\expect('get_field')->never();
         Functions\expect('get_transient')->never();
 
@@ -98,6 +100,7 @@ describe('process', function (): void {
     });
 
     it('fetches nothing for a provider with no NPI', function (): void {
+        /** @var UnitTestCase $this */
         Functions\expect('get_field')->once()->with('physician_npi', 7)->andReturn('');
         Functions\expect('get_transient')->never();
         Functions\expect('wp_remote_get')->never();
@@ -106,6 +109,7 @@ describe('process', function (): void {
     });
 
     it("fetches the NPI's profile and caches the body for 30 days on a miss", function (): void {
+        /** @var UnitTestCase $this */
         Functions\expect('get_field')->once()->with('physician_npi', 7)->andReturn('1234567890');
         Functions\expect('get_transient')->once()->with('nrc_backup_1234567890')->andReturn(false);
         Functions\expect('wp_remote_get')->once()
@@ -119,6 +123,7 @@ describe('process', function (): void {
     });
 
     it('caches nothing when the fetched body is an error', function (): void {
+        /** @var UnitTestCase $this */
         when('get_field')->justReturn('1234567890');
         when('get_transient')->justReturn(false);
         when('wp_remote_get')->justReturn(['body' => 'raw']);
@@ -130,6 +135,7 @@ describe('process', function (): void {
     });
 
     it('leaves a cached response alone, whatever it holds', function (mixed $cached): void {
+        /** @var UnitTestCase $this */
         when('get_field')->justReturn('1234567890');
         when('get_transient')->justReturn($cached);
 
