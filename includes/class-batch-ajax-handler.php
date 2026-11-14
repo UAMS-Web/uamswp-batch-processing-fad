@@ -51,6 +51,14 @@ class WP_Batch_Processing_Ajax_Handler {
 			exit();
 		}
 
+		// Check the capability. A nonce only proves intent; the batches page capability proves the right to run one.
+		if ( ! current_user_can( WP_Batch_Processor_Admin::CAPABILITY ) ) {
+			wp_send_json_error( array(
+				'message' => 'Permission denied.',
+			), 403 );
+			exit();
+		}
+
 		// Validate the batch id.
 		$batch_id = isset( $_REQUEST['batch_id'] ) ? $_REQUEST['batch_id'] : false;
 		if ( ! $batch_id ) {
@@ -122,6 +130,13 @@ class WP_Batch_Processing_Ajax_Handler {
 			wp_send_json_error( array(
 				'message' => 'Permission denied.',
 			) );
+			exit;
+		}
+		// Check the capability.
+		if ( ! current_user_can( WP_Batch_Processor_Admin::CAPABILITY ) ) {
+			wp_send_json_error( array(
+				'message' => 'Permission denied.',
+			), 403 );
 			exit;
 		}
 		// Validate the batch id.
