@@ -17,4 +17,14 @@ final class JsonSent extends RuntimeException
     {
         parent::__construct($success ? 'success' : 'error');
     }
+
+    /**
+     * The message the handler sent, which the test fails on when it sent none.
+     */
+    public function message(): mixed
+    {
+        return is_array($this->data) && array_key_exists('message', $this->data)
+            ? $this->data['message']
+            : throw new LogicException('The response carries no message.');
+    }
 }

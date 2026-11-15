@@ -119,6 +119,15 @@ describe('process', function (): void {
         expect(process_item($batch, 7, ['id' => 7]))->toBeTrue();
     })->with('content batches');
 
+    it('leaves the post alone when the ACF value is not text', function (string $class, string $id, string $title, string $type, string $field, string $init, mixed $value): void {
+        fake_post_queries([]);
+        $batch = batch_of($class);
+        Functions\expect('get_field')->once()->with($field, 7)->andReturn($value);
+        Functions\expect('wp_update_post')->never();
+
+        expect(process_item($batch, 7, ['id' => 7]))->toBeTrue();
+    })->with('content batches')->with(['an array' => [['a', 'b']], 'an object' => [new stdClass]]);
+
     it('leaves the post alone when the ACF field is empty', function (string $class, string $id, string $title, string $type, string $field): void {
         fake_post_queries([]);
         $batch = batch_of($class);

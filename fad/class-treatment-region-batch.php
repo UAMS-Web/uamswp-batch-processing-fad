@@ -103,7 +103,7 @@ if (class_exists('WP_Batch')) {
         public function process($item): bool
         {
 
-            $p_id = $item->get_value('id');
+            $p_id = $item->get_int_value('id');
 
             // error_log("ID: ".$t_id);
 
@@ -113,9 +113,9 @@ if (class_exists('WP_Batch')) {
                 $items = get_field($acf_field, $p_id);
                 if ($items) {
                     $regions = [];
-                    foreach ($items as $item) {
+                    foreach (WP_BP_Helper::acf_posts($items) as $item) {
                         $region = get_field('location_region', $item);
-                        $regions[] = strval($region);
+                        $regions[] = WP_BP_Helper::acf_string($region);
                         // break loop after first iteration = primary location
                         // break;
                     }

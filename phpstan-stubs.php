@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 /**
  * @param  string  $selector
- * @param  int|string|false|WP_Term  $post_id  ACF also reads a term object, as the term batches pass.
+ * @param  mixed  $post_id  ACF reads an id, a post or term object, or a string such as `term_5`.
  * @return mixed
  */
 function get_field($selector, $post_id = false, $format_value = true)
@@ -24,7 +24,7 @@ function get_field($selector, $post_id = false, $format_value = true)
 /**
  * @param  string  $selector
  * @param  mixed  $value
- * @param  int|string|false  $post_id
+ * @param  mixed  $post_id  ACF reads an id, a post or term object, or a string such as `term_5`.
  */
 function update_field($selector, $value, $post_id = false): bool
 {

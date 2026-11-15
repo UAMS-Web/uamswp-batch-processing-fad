@@ -103,7 +103,7 @@ if (class_exists('WP_Batch')) {
         public function process($item): bool
         {
 
-            $p_id = $item->get_value('id');
+            $p_id = $item->get_int_value('id');
 
             // error_log("ID: ".$t_id);
 
@@ -112,16 +112,16 @@ if (class_exists('WP_Batch')) {
                 // $acf_field = 'physician_locations';
                 // $items = get_field($acf_field, $p_id);
 
-                $expertises = get_field('field_physician_expertise', $p_id);
-                $conditions = get_field('field_physician_conditions_cpt', $p_id);
-                $treatments = get_field('field_physician_treatments_cpt', $p_id);
+                $expertises = WP_BP_Helper::acf_posts(get_field('field_physician_expertise', $p_id));
+                $conditions = WP_BP_Helper::acf_posts(get_field('field_physician_conditions_cpt', $p_id));
+                $treatments = WP_BP_Helper::acf_posts(get_field('field_physician_treatments_cpt', $p_id));
 
                 // Each list starts empty, so a provider with no titles of one kind contributes an empty segment.
                 $expertise_list = '';
                 $condition_list = '';
                 $treatment_list = '';
 
-                if ($expertises) {
+                if ($expertises !== []) {
                     $i = 1;
                     foreach ($expertises as $expertise) {
                         $expertise_name = get_the_title($expertise);
@@ -134,7 +134,7 @@ if (class_exists('WP_Batch')) {
                     }
                 }
 
-                if ($conditions) {
+                if ($conditions !== []) {
                     $i = 1;
                     foreach ($conditions as $condition) {
                         $condition_name = get_the_title($condition);
@@ -147,7 +147,7 @@ if (class_exists('WP_Batch')) {
                     }
                 }
 
-                if ($treatments) {
+                if ($treatments !== []) {
                     $i = 1;
                     foreach ($treatments as $treatment) {
                         $treatment_name = get_the_title($treatment);

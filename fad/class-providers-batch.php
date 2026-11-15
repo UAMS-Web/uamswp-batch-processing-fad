@@ -103,7 +103,7 @@ if (class_exists('WP_Batch')) {
         public function process($item): bool
         {
 
-            $p_id = $item->get_value('id');
+            $p_id = $item->get_int_value('id');
             $condition_id_offset = 100000;
             $treatment_id_offset = 200000;
 
@@ -115,7 +115,7 @@ if (class_exists('WP_Batch')) {
                 $items = get_field($acf_field, $p_id);
                 if ($items) {
                     $items_cpt = [];
-                    foreach ($items as $item) {
+                    foreach (WP_BP_Helper::acf_ids($items) as $item) {
                         $item_id = intval($item) + $condition_id_offset;
                         $items_cpt[] = strval($item_id);
                     }
@@ -128,7 +128,7 @@ if (class_exists('WP_Batch')) {
                 $items = get_field($acf_field, $p_id);
                 if ($items) {
                     $items_cpt = [];
-                    foreach ($items as $item) {
+                    foreach (WP_BP_Helper::acf_ids($items) as $item) {
                         $item_id = intval($item) + $treatment_id_offset;
                         $items_cpt[] = strval($item_id);
                     }

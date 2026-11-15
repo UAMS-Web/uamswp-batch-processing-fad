@@ -97,7 +97,7 @@ if (class_exists('WP_Batch')) {
         public function process($item): bool
         {
 
-            $p_id = $item->get_value('id');
+            $p_id = $item->get_int_value('id');
 
             // error_log("ID: ".$t_id);
 
@@ -109,10 +109,15 @@ if (class_exists('WP_Batch')) {
                         // load existing related posts
                         $value2new = get_field('treatment_conditions', $post_id2new, false);
 
-                        // allow for selected posts to not contain a value
-                        if (empty($value2new)) {
-                            $value2new = [];
+                        // A value that is not a list cannot take the id: leave the selected post's field as it is.
+                        if ($value2new && ! is_array($value2new)) {
+                            trigger_error(sprintf('Skipped a related post whose list field holds a %s, not a list', get_debug_type($value2new)), E_USER_WARNING);
+
+                            continue;
                         }
+
+                        // allow for selected posts to not contain a value
+                        $value2new = WP_BP_Helper::acf_list($value2new);
 
                         // bail early if the current $p_id is already found in selected post's $value2new
                         if (in_array($p_id, $value2new)) {
