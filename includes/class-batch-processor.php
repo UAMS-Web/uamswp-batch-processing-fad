@@ -38,7 +38,7 @@ class WP_Batch_Processor
     /**
      * List of batches
      *
-     * @var WP_Batch[]
+     * @var array<int, WP_Batch>
      */
     protected $batches;
 
@@ -63,7 +63,7 @@ class WP_Batch_Processor
     /**
      * Returns array of registered batches
      *
-     * @return WP_Batch[]
+     * @return array<int, WP_Batch>
      */
     public function get_batches()
     {
