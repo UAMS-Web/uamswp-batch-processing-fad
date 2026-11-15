@@ -5,6 +5,7 @@ declare(strict_types=1);
 Plugin Name: UAMSWP Batch Processing
 Plugin URI: https://github.com/UAMS-Web/uamswp-batch-processing-fad
 Description: Batch Processing for WordPress. Find-a-doc
+Requires at least: 6.8
 Requires PHP: 8.2
 Version: 1.0.2.1
 Author: UAMS Web Services, based on work by Darko Gjorgjijoski
