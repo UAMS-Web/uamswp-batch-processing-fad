@@ -83,6 +83,13 @@ describe('column_default', function (): void {
         expect((new WP_BP_List_Table)->column_default($batch, 'id'))->toBe('b');
     });
 
+    it('shows nothing for a column whose property holds a list', function (): void {
+        $batch = new FakeBatch('b');
+        $batch->processedIds = [1, 2];
+
+        expect((new WP_BP_List_Table)->column_default($batch, 'processedIds'))->toBe('');
+    });
+
     it('shows nothing for a column the batch has no property for', function (): void {
         expect((new WP_BP_List_Table)->column_default(new FakeBatch('b'), 'nope'))->toBe('');
     });
