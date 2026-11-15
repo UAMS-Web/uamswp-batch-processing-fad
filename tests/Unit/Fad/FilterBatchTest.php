@@ -177,17 +177,23 @@ describe('process', function (): void {
         expect($result)->toBeTrue();
     });
 
-    it('raises no warning, whichever of the three lists are empty', function (array $expertises, array $conditions, array $treatments): void {
-        $result = run_filter_process($expertises, $conditions, $treatments);
+    it('raises no warning, whichever of the three lists are empty', function (): void {
+        // A literal list rather than a dataset: a dataset closure's untyped array parameters would not
+        // satisfy the helper's `array<int, int>` parameters at PHPStan level 10.
+        $cases = [
+            'all three' => [[1], [2], [3]],
+            'expertise only' => [[1], [], []],
+            'conditions only' => [[], [2], []],
+            'treatments only' => [[], [], [3]],
+            'none' => [[], [], []],
+        ];
 
-        expect($result['warnings'])->toBe([]);
-    })->with([
-        'all three' => [[1], [2], [3]],
-        'expertise only' => [[1], [], []],
-        'conditions only' => [[], [2], []],
-        'treatments only' => [[], [], [3]],
-        'none' => [[], [], []],
-    ]);
+        foreach ($cases as $case => [$expertises, $conditions, $treatments]) {
+            $result = run_filter_process($expertises, $conditions, $treatments);
+
+            expect($result['warnings'])->toBe([], $case);
+        }
+    });
 });
 
 it('does nothing in finish()', function (): void {
