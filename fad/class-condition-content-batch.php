@@ -97,7 +97,7 @@ if (class_exists('WP_Batch')) {
         public function process($item): bool
         {
 
-            $p_id = $item->get_value('id');
+            $p_id = $item->get_int_value('id');
 
             // error_log("ID: ".$t_id);
 
@@ -105,10 +105,12 @@ if (class_exists('WP_Batch')) {
                 // Conditions
                 $acf_field = 'condition_content';
                 $content = get_field($acf_field, $p_id);
-                if ($content) {
+                // A value that is not text (an array, an object) would blank the post body: leave the post alone.
+                $text = WP_BP_Helper::acf_string($content);
+                if ($content && $text !== '') {
                     wp_update_post([
                         'ID' => $p_id,
-                        'post_content' => $content,
+                        'post_content' => $text,
                     ]);
                 }
 

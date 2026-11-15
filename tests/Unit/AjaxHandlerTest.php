@@ -121,6 +121,12 @@ describe('process_next_item', function (): void {
             ->and($sent->status)->toBeNull();
     });
 
+    it('refuses a batch id that is not a string or an integer', function (): void {
+        $_REQUEST['batch_id'] = ['fake'];
+
+        expect(handler_sends('process_next_item')->data)->toBe(['message' => 'Invalid batch id']);
+    });
+
     it('refuses a batch id that is empty or zero', function (string $id): void {
         $_REQUEST['batch_id'] = $id;
 
@@ -193,7 +199,7 @@ describe('process_next_item', function (): void {
         $_REQUEST['batch_id'] = 'fake';
         expectApplied('dg_batch_item_success_message')->once()->andReturn('Done one');
 
-        expect(handler_sends('process_next_item')->data['message'])->toBe('Done one');
+        expect(handler_sends('process_next_item')->message())->toBe('Done one');
     });
 
     it('reports an item whose processing returned an error, and still marks it processed', function (): void {
@@ -225,7 +231,7 @@ describe('process_next_item', function (): void {
         $_REQUEST['batch_id'] = 'fake';
         expectApplied('dg_batch_item_error_message')->once()->andReturn('Custom failure');
 
-        expect(handler_sends('process_next_item')->data['message'])->toBe('Custom failure');
+        expect(handler_sends('process_next_item')->message())->toBe('Custom failure');
     });
 
     it('finishes the batch once no item is left', function (): void {
@@ -287,6 +293,12 @@ describe('restart_batch', function (): void {
             ->and($sent->data)->toBe(['message' => 'Permission denied.'])
             ->and($sent->status)->toBe(403)
             ->and($this->calls['current_user_can'])->toBe([['manage_options']]);
+    });
+
+    it('refuses a batch id that is not a string or an integer', function (): void {
+        $_REQUEST['batch_id'] = ['fake'];
+
+        expect(handler_sends('restart_batch')->data)->toBe(['message' => 'Invalid batch id']);
     });
 
     it('refuses a request with no batch id', function (): void {

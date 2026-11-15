@@ -30,6 +30,16 @@ if (! class_exists('WP_Error')) {
     }
 }
 
+if (! class_exists('WP_Post')) {
+    /**
+     * Stand-in for WP_Post: a value an ACF list can hold in place of a post id.
+     */
+    class WP_Post
+    {
+        public function __construct(public object $post = new stdClass) {}
+    }
+}
+
 if (! class_exists('WP_Query')) {
     /**
      * Stand-in for WP_Query, for the batches' setup(): each new instance takes the next list of

@@ -59,6 +59,25 @@ class WP_Batch_Item
      */
     public function get_value($key, $default = null)
     {
-        return $this->data[$key] ?? $default;
+        if (is_array($this->data) || $this->data instanceof ArrayAccess) {
+            return $this->data[$key] ?? $default;
+        }
+
+        return $default;
+    }
+
+    /**
+     * Return data value as an integer id: an integer, or a numeric string, counts; anything else is 0.
+     *
+     * @param  int|string  $key
+     */
+    public function get_int_value($key = 'id'): int
+    {
+        $value = $this->get_value($key);
+        if (is_int($value)) {
+            return $value;
+        }
+
+        return is_string($value) && is_numeric($value) ? (int) $value : 0;
     }
 }
