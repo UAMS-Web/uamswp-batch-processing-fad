@@ -105,10 +105,12 @@ if (class_exists('WP_Batch')) {
                 // Conditions
                 $acf_field = 'treatment_procedure_content';
                 $content = get_field($acf_field, $p_id);
-                if ($content) {
+                // A value that is not text (an array, an object) would blank the post body: leave the post alone.
+                $text = WP_BP_Helper::acf_string($content);
+                if ($content && $text !== '') {
                     wp_update_post([
                         'ID' => $p_id,
-                        'post_content' => WP_BP_Helper::acf_string($content),
+                        'post_content' => $text,
                     ]);
                 }
 

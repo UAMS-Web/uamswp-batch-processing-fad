@@ -180,6 +180,26 @@ describe('process', function (): void {
         process_item($batch, 7, ['id' => 7]);
     })->with('sync batches')->with(['an int' => [7], 'a string' => ['7']]);
 
+    it('skips a related post whose reverse field is not a list, warns, and still handles the next one', function (string $class, string $id, string $title, string $type, string $field, string $reverse, string $key, string $init, mixed $held): void {
+        $batch = batch_of($class);
+        when('get_field')->alias(fn (string $name, int $post, $format = true): mixed => match (true) {
+            $name === $field => [40, 41],
+            $post === 40 => $held,
+            default => [],
+        });
+        $written = [];
+        when('update_field')->alias(function (string $name, array $value, int $post) use (&$written): void {
+            $written[] = $post;
+        });
+
+        $warnings = record_warnings(fn (): mixed => process_item($batch, 7, ['id' => 7]));
+
+        expect($written)->toBe([41])
+            ->and($warnings)->toHaveCount(1)
+            ->and($warnings[0])->toContain('Skipped a related post')
+            ->and($warnings[0])->toContain(get_debug_type($held));
+    })->with('sync batches')->with(['a string' => ['abc'], 'an int' => [5], 'an object' => [new stdClass]]);
+
     it('carries on to the next related post after skipping one', function (string $class, string $id, string $title, string $type, string $field, string $reverse, string $key): void {
         $batch = batch_of($class);
         when('get_field')->alias(fn (string $name, int $post, $format = true): array => match (true) {
