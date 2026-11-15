@@ -78,16 +78,19 @@ class WP_BP_List_Table extends WP_List_Table
      *
      * @param  WP_Batch  $item
      * @param  string  $column_name
-     * @return string
+     * @return string|int|float|bool
      */
     public function column_default($item, $column_name)
     {
 
+        $named = $item->$column_name ?? '';
+
+        // A property that holds a list or an object would print as "Array" with a notice: show nothing.
         return match ($column_name) {
             'title' => $item->title,
             'total_processed' => $item->get_processed_count(),
             'total_items' => $item->get_items_count(),
-            default => $item->$column_name ?? '',
+            default => is_scalar($named) ? $named : '',
         };
     }
 
