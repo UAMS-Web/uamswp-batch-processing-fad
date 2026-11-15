@@ -41,10 +41,10 @@ beforeEach(function (): void {
     forget_singleton(WP_Batch_Processing_Ajax_Handler::class);
     forget_singleton(WP_Batch_Processor::class);
 
-    when('wp_send_json_error')->alias(function ($data = null, $status = null): never {
+    when('wp_send_json_error')->alias(function ($data = null, ?int $status = null): never {
         throw new JsonSent(false, $data, $status);
     });
-    when('wp_send_json_success')->alias(function ($data = null, $status = null): never {
+    when('wp_send_json_success')->alias(function ($data = null, ?int $status = null): never {
         throw new JsonSent(true, $data, $status);
     });
     when('is_wp_error')->alias(fn ($value): bool => $value instanceof WP_Error);
