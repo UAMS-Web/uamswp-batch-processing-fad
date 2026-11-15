@@ -59,6 +59,10 @@ if (class_exists('WP_Batch')) {
             ]);
 
             foreach ($users as $user) {
+                if (! $user instanceof WP_User) {
+                    continue;
+                }
+
                 $this->push(new WP_Batch_Item($user->ID, ['author_id' => $user->ID]));
             }
         }

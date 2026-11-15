@@ -54,6 +54,6 @@ final class FakeBatch extends WP_Batch
     /** @return array<int, WP_Batch_Item> */
     public function items(): array
     {
-        return $this->items;
+        return array_values($this->items);
     }
 }
