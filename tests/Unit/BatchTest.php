@@ -64,8 +64,27 @@ it('reports no processed items when the stored option is not an array', function
     /** @var UnitTestCase $this */
     $this->store['batch_b_processed'] = $stored;
 
-    expect((new FakeBatch('b', [1]))->get_processed_items())->toBe([]);
+    $batch = new FakeBatch('b', [1]);
+    $items = [];
+
+    $warnings = record_warnings(function () use ($batch, &$items): void {
+        $items = $batch->get_processed_items();
+    });
+
+    expect($items)->toBe([])
+        ->and($warnings)->toHaveCount(1)
+        ->and($warnings[0])->toContain('batch "b"')
+        ->and($warnings[0])->toContain('the batch starts over')
+        ->and($warnings[0])->toContain(get_debug_type($stored));
 })->with(['string' => ['1,2'], 'false' => [false], 'int' => [5]]);
+
+it('raises no warning for a stored list or for nothing stored', function (): void {
+    /** @var UnitTestCase $this */
+    $this->store['batch_b_processed'] = [1];
+
+    expect(record_warnings(fn (): mixed => (new FakeBatch('b', [1]))->get_processed_items()))->toBe([])
+        ->and(record_warnings(fn (): mixed => (new FakeBatch('c', [1]))->get_processed_items()))->toBe([]);
+});
 
 it('records a processed id under the batch option', function (): void {
     /** @var UnitTestCase $this */

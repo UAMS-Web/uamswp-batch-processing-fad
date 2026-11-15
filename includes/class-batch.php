@@ -163,8 +163,15 @@ abstract class WP_Batch
     {
         $stored = get_option($this->get_db_identifier(), []);
 
+        // A stored value that is not a list reads as an unstarted batch, with a warning so the restart is not silent.
+        if (! is_array($stored)) {
+            trigger_error(sprintf('The processed ids of batch "%s" are stored as a %s, not a list; the batch starts over', $this->id, get_debug_type($stored)), E_USER_WARNING);
+
+            return [];
+        }
+
         $ids = [];
-        foreach (is_array($stored) ? $stored : [] as $id) {
+        foreach ($stored as $id) {
             if (is_int($id) || is_string($id)) {
                 $ids[] = $id;
             }
