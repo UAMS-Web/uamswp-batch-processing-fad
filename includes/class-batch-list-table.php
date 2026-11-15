@@ -164,6 +164,6 @@ class WP_BP_List_Table extends WP_List_Table
         $this->_column_headers = [$columns, $hidden, $sortable];
         $this->page_status = isset($_GET['status']) && is_string($_GET['status']) ? sanitize_text_field($_GET['status']) : '2';
 
-        $this->items = array_values(WP_Batch_Processor::get_instance()->get_batches());
+        $this->items = WP_Batch_Processor::get_instance()->get_batches();
     }
 }
