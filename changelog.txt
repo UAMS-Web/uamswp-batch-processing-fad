@@ -1,3 +1,14 @@
+= Version 1.1.0 (2026-11-15) =
+- [Security] The batch runner's AJAX actions and nonce now require the `manage_options` capability.
+- [Fix] An unknown batch id gets an answer instead of a fatal error.
+- [Fix] The singleton trait is declared so PHP 8 does not warn.
+- [Fix] The sync batches compare against `$p_id` instead of the undefined `$post_id`.
+- [Fix] The provider filter lists are initialized before items are appended to them.
+- [Change] The plugin requires WordPress 6.8 and PHP 8.2.
+- [Change] A GitHub download carries only the files the plugin runs.
+- [Change] The GPL-2 license text, a modification notice, the UAMS Web Services credit and the plugin URI are in place.
+- [Dev] A Pest test suite with full unit coverage and mutation testing, PHPStan at level 10, Rector and Pint, and a CI chain that calls the shared workflows.
+
 = Version 1.0.1 (2019-07-14) =
 - [New] Added finish() method that can be overriden in the derived classes. It is called when specific batch finished processing.
 - [Fix] Division by zero warnings

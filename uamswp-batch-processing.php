@@ -7,7 +7,7 @@ Plugin URI: https://github.com/UAMS-Web/uamswp-batch-processing-fad
 Description: Batch Processing for WordPress. Find-a-doc
 Requires at least: 6.8
 Requires PHP: 8.2
-Version: 1.0.2.1
+Version: 1.1.0
 Author: UAMS Web Services, based on work by Darko Gjorgjijoski
 Author URI: https://communications.uams.edu/web/
 License: GPL-2+
