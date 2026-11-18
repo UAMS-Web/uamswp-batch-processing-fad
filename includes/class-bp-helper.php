@@ -160,4 +160,37 @@ class WP_BP_Helper
 
         return $values;
     }
+
+    /**
+     * Tells whether a term already has its post of the target post type, so a batch that makes a post per
+     * term can run again without making a second one.
+     *
+     * A post of the type at the term's offset id is the one an earlier run made, whatever its title is now. A
+     * post of the type titled with the term's name is one made by hand, or by an earlier run that found the
+     * offset id taken. A post of any other type, a page included, is neither. Trashed and auto-draft posts
+     * are not counted, as `post_status => any` leaves them out.
+     *
+     * @param  int  $offset_id  The term id plus the batch's offset.
+     * @param  string  $title  The term's name.
+     * @param  string  $post_type  The post type the batch makes.
+     */
+    public static function term_post_exists(int $offset_id, string $title, string $post_type): bool
+    {
+        // The post an earlier run made at the offset id
+        if (get_post_type($offset_id) === $post_type) {
+            return true;
+        }
+
+        // A post of the type with the term's name
+        $found = get_posts([
+            'post_type' => $post_type,
+            'title' => $title,
+            'post_status' => 'any',
+            'posts_per_page' => 1,
+            'fields' => 'ids',
+            'no_found_rows' => true,
+        ]);
+
+        return $found !== [];
+    }
 }

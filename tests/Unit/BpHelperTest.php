@@ -9,6 +9,8 @@
 
 declare(strict_types=1);
 
+use Brain\Monkey\Functions;
+
 use function Brain\Monkey\Functions\when;
 
 it('reports a view that does not exist', function (): void {
@@ -141,4 +143,34 @@ describe('first_meta_values', function (): void {
     it('is empty when the meta is not an array', function (mixed $meta): void {
         expect(WP_BP_Helper::first_meta_values($meta))->toBe([]);
     })->with(['false' => [false], 'string' => ['x'], 'null' => [null]]);
+});
+
+describe('term_post_exists', function (): void {
+    it('is true when the offset id holds a post of the type, without a title lookup', function (): void {
+        Functions\expect('get_post_type')->once()->with(100007)->andReturn('condition');
+        Functions\expect('get_posts')->never();
+
+        expect(WP_BP_Helper::term_post_exists(100007, 'Asthma', 'condition'))->toBeTrue();
+    });
+
+    it('looks for a post of the type with the title when the offset id holds none of that type', function (mixed $atOffset): void {
+        when('get_post_type')->justReturn($atOffset);
+        Functions\expect('get_posts')->once()->with([
+            'post_type' => 'condition',
+            'title' => 'Asthma',
+            'post_status' => 'any',
+            'posts_per_page' => 1,
+            'fields' => 'ids',
+            'no_found_rows' => true,
+        ])->andReturn([42]);
+
+        expect(WP_BP_Helper::term_post_exists(100007, 'Asthma', 'condition'))->toBeTrue();
+    })->with(['no post' => [false], 'a page' => ['page'], 'another type' => ['treatment']]);
+
+    it('is false when neither the offset id nor the title finds a post of the type', function (): void {
+        when('get_post_type')->justReturn('page');
+        when('get_posts')->justReturn([]);
+
+        expect(WP_BP_Helper::term_post_exists(100007, 'Asthma', 'condition'))->toBeFalse();
+    });
 });

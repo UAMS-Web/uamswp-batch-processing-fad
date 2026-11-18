@@ -9,9 +9,10 @@ Written against v1.1.0.
 - [`Permission denied.` or `Invalid batch id` repeats without stopping](#permission-denied-or-invalid-batch-id-repeats-without-stopping)
 - [Every item takes a long time](#every-item-takes-a-long-time)
 - [A batch shows 100% but some items were not processed](#a-batch-shows-100-but-some-items-were-not-processed)
-- [Running a Make Posts from Taxonomy batch again created duplicate posts](#running-a-make-posts-from-taxonomy-batch-again-created-duplicate-posts)
-- [The log says `get_page_by_title` is deprecated since version 6.2.0](#the-log-says-get_page_by_title-is-deprecated-since-version-620)
 - [The NRC cache batch finished but a provider has no cached data](#the-nrc-cache-batch-finished-but-a-provider-has-no-cached-data)
+- [Fixed](#fixed)
+  - [Running a Make Posts from Taxonomy batch again created duplicate posts](#running-a-make-posts-from-taxonomy-batch-again-created-duplicate-posts)
+  - [The log says `get_page_by_title` is deprecated since version 6.2.0](#the-log-says-get_page_by_title-is-deprecated-since-version-620)
 
 ## There is no Batches menu
 
@@ -55,22 +56,30 @@ Written against v1.1.0.
 
 **Fix:** choose **Restart**, then **Start**, to run every item again.
 
-## Running a Make Posts from Taxonomy batch again created duplicate posts
-
-**Cause:** *Make Condition Posts from Taxonomy* and *Make Treatment Posts from Taxonomy* skip a term only when a **page** already has its name as its title. An existing `condition` or `treatment` post does not stop them, so a second run creates a second post per term, with an ordinary ID because the offset ID is taken.
-
-**Fix:** run each of these batches once per site. To remove duplicates, take each term in turn, find the posts of that post type whose title is the term's name, keep the one whose ID is the term ID plus the offset (`100000` for conditions, `200000` for treatments) and delete the others. Do not delete a post only because its ID does not match the offset: a post made by hand, or on a first run where the offset ID was taken, has an ordinary ID too.
-
-## The log says `get_page_by_title` is deprecated since version 6.2.0
-
-The notice reads `Function get_page_by_title is deprecated since version 6.2.0! Use WP_Query instead.`, with `deprecated` in bold where it is shown as HTML.
-
-**Cause:** the two *Make ... Posts from Taxonomy* batches call `get_page_by_title()`, which WordPress deprecated in 6.2. With `WP_DEBUG` on, each item logs the notice.
-
-**Fix:** none needed for the batch to run; the notice does not stop it.
-
 ## The NRC cache batch finished but a provider has no cached data
 
 **Cause:** *Update Cache Providers NRC Data* skips a provider with no `physician_npi`, skips a provider whose transient is still stored, and stores nothing when the request could not be made at all. An error response from the server (a `404` or `500`) is stored for 30 days like any other, so a provider can also have cached data that is an error.
 
 **Fix:** check that the provider has an NPI. To refetch a provider whose cached response is an error, delete its `nrc_backup_<npi>` transient, then restart the batch and run it again.
+
+## Fixed
+
+Problems that a later change fixed, kept for sites still running the release named in each.
+
+### Running a Make Posts from Taxonomy batch again created duplicate posts
+
+Fixed after v1.1.0 ([#90](https://github.com/UAMS-Web/uamswp-batch-processing-fad/issues/90)): the batches now skip a term when a post of their own type sits at the term's offset ID or has the term's name, and a page no longer counts.
+
+**Cause:** in v1.1.0, *Make Condition Posts from Taxonomy* and *Make Treatment Posts from Taxonomy* skip a term only when a **page** already has its name as its title. An existing `condition` or `treatment` post does not stop them, so a second run creates a second post per term, with an ordinary ID because the offset ID is taken.
+
+**Fix:** in v1.1.0, run each of these batches once per site. To remove duplicates made by an earlier version, take each term in turn, find the posts of that post type whose title is the term's name, keep the one whose ID is the term ID plus the offset (`100000` for conditions, `200000` for treatments) and delete the others. Do not delete a post only because its ID does not match the offset: a post made by hand, or on a first run where the offset ID was taken, has an ordinary ID too.
+
+### The log says `get_page_by_title` is deprecated since version 6.2.0
+
+Fixed after v1.1.0 ([#90](https://github.com/UAMS-Web/uamswp-batch-processing-fad/issues/90)): the batches no longer call `get_page_by_title()`.
+
+The notice reads `Function get_page_by_title is deprecated since version 6.2.0! Use WP_Query instead.`, with `deprecated` in bold where it is shown as HTML.
+
+**Cause:** in v1.1.0, the two *Make ... Posts from Taxonomy* batches call `get_page_by_title()`, which WordPress deprecated in 6.2. With `WP_DEBUG` on, each item logs the notice.
+
+**Fix:** in v1.1.0, none needed for the batch to run; the notice does not stop it.

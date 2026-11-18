@@ -128,7 +128,8 @@ if (class_exists('WP_Batch')) {
 
                 // Above finds all the data from Custom Taxonomy and associated metadata.
                 // We make a new post for each item, using same details from Taxonomy
-                if (get_page_by_title($name) == null) { // If that post doesn't exist of course.
+                // A term that already has its post, from an earlier run or made by hand, gets no second one.
+                if (! WP_BP_Helper::term_post_exists($new_id, $name, $post_type)) {
                     $new_post = [
                         'import_id' => $new_id,
                         'post_title' => $name,
