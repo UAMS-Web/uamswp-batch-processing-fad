@@ -67,11 +67,10 @@ function stub_term(object $term, array $fields = [], array $meta = []): void
 }
 
 /**
- * Stubs WP_BP_Helper::term_post_exists()'s lookups to find no post: nothing at the offset id, nothing by title.
+ * Stubs WP_BP_Helper::term_post_exists()'s lookup to find no post of the type with the term's name.
  */
 function stub_no_term_post(): void
 {
-    when('get_post_type')->justReturn(false);
     when('get_posts')->justReturn([]);
 }
 
@@ -141,7 +140,6 @@ describe('process', function (): void {
         $batch = batch_of($class);
         Functions\expect('get_term_by')->once()->with('id', 7, $taxonomy)->andReturn($this->term);
         when('get_field')->justReturn(false);
-        when('get_post_type')->justReturn(false);
         when('get_posts')->justReturn([1]);
 
         Functions\expect('wp_insert_post')->never();
@@ -150,16 +148,18 @@ describe('process', function (): void {
         expect(process_item($batch, 7, ['id' => 7]))->toBeTrue();
     })->with('term batches');
 
-    it('inserts nothing when the offset id already holds a post of its type', function (string $class, string $id, string $title, string $taxonomy, int $offset): void {
+    it("inserts the post when another term's post of its type holds the offset id", function (string $class, string $id, string $title, string $taxonomy): void {
         /** @var UnitTestCase $this */
         $batch = batch_of($class);
         when('get_term_by')->justReturn($this->term);
         when('get_field')->justReturn(false);
-        Functions\expect('get_post_type')->once()->with(7 + $offset)->andReturn($taxonomy);
+        when('get_term_meta')->justReturn([]);
+        // A post of the type sits at the offset id under another name, as an ordinary id an earlier insert got can.
+        when('get_post_type')->justReturn($taxonomy);
+        when('get_posts')->justReturn([]);
+        Functions\expect('wp_insert_post')->once()->andReturn(500);
 
-        Functions\expect('wp_insert_post')->never();
-
-        expect(process_item($batch, 7, ['id' => 7]))->toBeTrue();
+        process_item($batch, 7, ['id' => 7]);
     })->with('term batches');
 
     it("inserts the post when only a page has the term's name", function (string $class, string $id, string $title, string $taxonomy): void {
@@ -168,8 +168,7 @@ describe('process', function (): void {
         when('get_term_by')->justReturn($this->term);
         when('get_field')->justReturn(false);
         when('get_term_meta')->justReturn([]);
-        // A page holds the offset id and has the name; neither is a post of the batch's type.
-        when('get_post_type')->justReturn('page');
+        // Only a page has the name, and a page is not a post of the batch's type.
         Functions\expect('get_posts')->once()->with(Mockery::on(fn (array $args): bool => $args['post_type'] === $taxonomy && $args['title'] === 'Asthma'))->andReturn([]);
         Functions\expect('wp_insert_post')->once()->andReturn(500);
 
@@ -181,7 +180,7 @@ describe('process', function (): void {
         $batch = batch_of($class);
         stub_term($this->term);
         // A small posts table. As in WordPress, wp_insert_post() uses the import id only while no post holds
-        // it, and otherwise gives the post the next free id; the lookups read the table.
+        // it, and otherwise gives the post an ordinary auto-increment id; the lookup reads the table.
         $table = new class
         {
             /** @var array<int, string> Post type by post id. */
@@ -226,7 +225,6 @@ describe('process', function (): void {
             }
         };
         when('wp_insert_post')->alias(fn (array $post): int => $table->insert($post));
-        when('get_post_type')->alias(fn (int $postId): string|false => $table->types[$postId] ?? false);
         when('get_posts')->alias(fn (array $args): array => $table->find($args));
 
         process_item($batch, 7, ['id' => 7]);
@@ -259,7 +257,6 @@ describe('process', function (): void {
         $previous = ini_set('error_log', $log);
         when('get_term_by')->justReturn($this->term);
         when('get_field')->justReturn(false);
-        when('get_post_type')->justReturn(false);
         when('get_posts')->justReturn([1]);
 
         try {
@@ -273,12 +270,11 @@ describe('process', function (): void {
         expect($logged)->toContain('ID: 7');
     })->with('term batches');
 
-    it("looks the post up at the offset id, then by the term's name within its post type", function (string $class, string $id, string $title, string $taxonomy, int $offset): void {
+    it("looks the post up by the term's name within its post type", function (string $class, string $id, string $title, string $taxonomy): void {
         /** @var UnitTestCase $this */
         $batch = batch_of($class);
         when('get_term_by')->justReturn($this->term);
         when('get_field')->justReturn(false);
-        Functions\expect('get_post_type')->once()->with(7 + $offset)->andReturn(false);
         Functions\expect('get_posts')->once()->with(Mockery::on(fn (array $args): bool => $args['post_type'] === $taxonomy && $args['title'] === 'Asthma'))->andReturn([1]);
 
         process_item($batch, 7, ['id' => 7]);

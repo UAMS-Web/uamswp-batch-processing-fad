@@ -68,7 +68,7 @@ Problems that a later change fixed, kept for sites still running the release nam
 
 ### Running a Make Posts from Taxonomy batch again created duplicate posts
 
-Fixed after v1.1.0 ([#90](https://github.com/UAMS-Web/uamswp-batch-processing-fad/issues/90)): the batches now skip a term when a post of their own type sits at the term's offset ID or has the term's name, and a page no longer counts.
+Fixed after v1.1.0 ([#90](https://github.com/UAMS-Web/uamswp-batch-processing-fad/issues/90)): the batches now skip a term when a post of their own type has the term's name, and a page no longer counts. A generated post that has since been retitled is not found, so keep the generated titles, or expect a second post for that term.
 
 **Cause:** in v1.1.0, *Make Condition Posts from Taxonomy* and *Make Treatment Posts from Taxonomy* skip a term only when a **page** already has its name as its title. An existing `condition` or `treatment` post does not stop them, so a second run creates a second post per term, with an ordinary ID because the offset ID is taken.
 

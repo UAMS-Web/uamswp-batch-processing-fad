@@ -35,7 +35,7 @@ The two taxonomy batches read terms ordered by name. Every other batch reads pos
 
 **Note:** every registered batch runs its `setup()` query on every Batches screen load and every item request, whichever batch is running. See [Troubleshooting](Troubleshooting.md#every-item-takes-a-long-time).
 
-Since the change after v1.1.0 ([#90](https://github.com/UAMS-Web/uamswp-batch-processing-fad/issues/90)), the two *Make ... Posts from Taxonomy* batches skip a term that already has its post: a post of the batch's own type at the term's offset ID, or one titled with the term's name. A page with that name does not count. In v1.1.0 they skipped a term only when a **page** had its name, so running either batch a second time made a second post per term.
+Since the change after v1.1.0 ([#90](https://github.com/UAMS-Web/uamswp-batch-processing-fad/issues/90)), the two *Make ... Posts from Taxonomy* batches skip a term that already has its post: a post of the batch's own type titled with the term's name, in any status except trash and auto-draft. A page with that name does not count, and neither does a post at the term's offset ID with another name. A generated post that has been retitled is not found, so a run makes the term a second post. In v1.1.0 they skipped a term only when a **page** had its name, so running either batch a second time made a second post per term.
 
 ## Batches in `fad/` that are not loaded
 

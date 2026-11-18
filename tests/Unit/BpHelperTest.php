@@ -146,15 +146,7 @@ describe('first_meta_values', function (): void {
 });
 
 describe('term_post_exists', function (): void {
-    it('is true when the offset id holds a post of the type, without a title lookup', function (): void {
-        Functions\expect('get_post_type')->once()->with(100007)->andReturn('condition');
-        Functions\expect('get_posts')->never();
-
-        expect(WP_BP_Helper::term_post_exists(100007, 'Asthma', 'condition'))->toBeTrue();
-    });
-
-    it('looks for a post of the type with the title when the offset id holds none of that type', function (mixed $atOffset): void {
-        when('get_post_type')->justReturn($atOffset);
+    it('looks for one post of the type with the title, in any status but trash and auto-draft', function (): void {
         Functions\expect('get_posts')->once()->with([
             'post_type' => 'condition',
             'title' => 'Asthma',
@@ -164,13 +156,21 @@ describe('term_post_exists', function (): void {
             'no_found_rows' => true,
         ])->andReturn([42]);
 
-        expect(WP_BP_Helper::term_post_exists(100007, 'Asthma', 'condition'))->toBeTrue();
-    })->with(['no post' => [false], 'a page' => ['page'], 'another type' => ['treatment']]);
+        expect(WP_BP_Helper::term_post_exists('Asthma', 'condition'))->toBeTrue();
+    });
 
-    it('is false when neither the offset id nor the title finds a post of the type', function (): void {
-        when('get_post_type')->justReturn('page');
+    it('is false when no post of the type has the title', function (): void {
         when('get_posts')->justReturn([]);
 
-        expect(WP_BP_Helper::term_post_exists(100007, 'Asthma', 'condition'))->toBeFalse();
+        expect(WP_BP_Helper::term_post_exists('Asthma', 'condition'))->toBeFalse();
+    });
+
+    it('does not consult the post at an id', function (): void {
+        Functions\expect('get_post_type')->never();
+        Functions\expect('get_post')->never();
+
+        when('get_posts')->justReturn([]);
+
+        WP_BP_Helper::term_post_exists('Asthma', 'condition');
     });
 });

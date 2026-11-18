@@ -165,23 +165,21 @@ class WP_BP_Helper
      * Tells whether a term already has its post of the target post type, so a batch that makes a post per
      * term can run again without making a second one.
      *
-     * A post of the type at the term's offset id is the one an earlier run made, whatever its title is now. A
-     * post of the type titled with the term's name is one made by hand, or by an earlier run that found the
-     * offset id taken. A post of any other type, a page included, is neither. Trashed and auto-draft posts
-     * are not counted, as `post_status => any` leaves them out.
+     * The term's post is a post of the type titled with the term's name: the one an earlier run made, at the
+     * offset id or, when that id was taken, at an ordinary one, or one made by hand. A post of any other type,
+     * a page included, does not count, and neither does a trashed or auto-draft post, as `post_status => any`
+     * leaves them out.
      *
-     * @param  int  $offset_id  The term id plus the batch's offset.
+     * The offset id is deliberately not consulted. When an import id is taken, WordPress gives the post an
+     * ordinary auto-increment id, which can equal a later term's offset id, so a post of the type at a term's
+     * offset id may belong to another term. A generated post retitled since it was made is not found, and a
+     * run makes the term a second one.
+     *
      * @param  string  $title  The term's name.
      * @param  string  $post_type  The post type the batch makes.
      */
-    public static function term_post_exists(int $offset_id, string $title, string $post_type): bool
+    public static function term_post_exists(string $title, string $post_type): bool
     {
-        // The post an earlier run made at the offset id
-        if (get_post_type($offset_id) === $post_type) {
-            return true;
-        }
-
-        // A post of the type with the term's name
         $found = get_posts([
             'post_type' => $post_type,
             'title' => $title,
