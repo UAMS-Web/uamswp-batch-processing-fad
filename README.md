@@ -1,135 +1,23 @@
-# WP Batch Processing
+# UAMSWP Batch Processing
 
-WP Batch Processing is WordPress plugin for creating batches of data and processing the the data items one by one. It allows you to define a batch and to process the queued batch items one by one. There is also option to resume/continue later in case your internet connection goes down.
- 
+UAMSWP Batch Processing is a WordPress admin plugin that runs a list of work items one at a time from the browser, with a progress bar, and resumes where it stopped if the page is closed or the connection drops. It is a modified version of [WP Batch Processing](https://github.com/gdarko/wp-batch-processing), and it ships the batches the Find-a-Doc site uses to build and maintain its condition, treatment, provider, location and area-of-expertise content.
+
 ![Example](examples/processing.gif)
 
-To define a batch you just need to extend the class `WP_Batch` and later register it. Follow  the examples below to learn how.
+Batches suit any long job that can be split into items: importing or downloading data, sending email, or changing many posts.
 
-The class provides the following attributes and methods 
+## Documentation
 
-* `$id` - Identifies the batch (must be unique),
-* `$title` - Shown in the admin area,
-* `setup()` - Method that you use it to fed your data with `WP_Batch_Item` instances,
-* `process(WP_Batch_Item $item)` - Method that will be used to process each next item in the batch
+The [wiki](https://github.com/UAMS-Web/uamswp-batch-processing-fad/wiki) covers running a batch, writing one, the reference for every shipped batch and for the plugin's hooks, and troubleshooting. Its pages are kept in [`docs/wiki/`](docs/wiki/) and published by the `Publish wiki` workflow.
 
-```php
+## Installation
 
-if ( class_exists( 'WP_Batch' ) ) {
+Requirements: WordPress 6.8 or later and PHP 8.2 or later. The Find-a-Doc batches also need Advanced Custom Fields and the Find-a-Doc post types and taxonomies.
 
-	/**
-	 * Class MY_Example_Batch
-	 */
-	class MY_Example_Batch extends WP_Batch {
+1. Install the plugin in `wp-content/plugins/` from a [release](https://github.com/UAMS-Web/uamswp-batch-processing-fad/releases) of this repository, and activate it.
+2. Open **Batches** in the admin menu, as a user with the `manage_options` capability.
 
-		/**
-		 * Unique identifier of each batch
-		 * @var string
-		 */
-		public $id = 'email_post_authors';
-
-		/**
-		 * Describe the batch
-		 * @var string
-		 */
-		public $title = 'Email Post Authors';
-
-		/**
-		 * To setup the batch data use the push() method to add WP_Batch_Item instances to the queue.
-		 *
-		 * Note: If the operation of obtaining data is expensive, cache it to avoid slowdowns.
-		 *
-		 * @return void
-		 */
-		public function setup() {
-
-			$users = get_users( array(
-				'number' => '40',
-				'role'   => 'author',
-			) );
-
-			foreach ( $users as $user ) {
-				$this->push( new WP_Batch_Item( $user->ID, array( 'author_id' => $user->ID ) ) );
-			}
-		}
-
-		/**
-		 * Handles processing of batch item. One at a time.
-		 *
-		 * In order to work it correctly you must return values as follows:
-		 *
-		 * - TRUE - If the item was processed successfully.
-		 * - WP_Error instance - If there was an error. Add message to display it in the admin area.
-		 *
-		 * @param WP_Batch_Item $item
-		 *
-		 * @return bool|\WP_Error
-		 */
-		public function process( $item ) {
-
-			// Retrieve the custom data
-			$author_id = $item->get_value( 'author_id' );
-
-			// Return WP_Error if the item processing failed (In our case we simply skip author with user id 5)
-			if ( $author_id == 5 ) {
-				return new WP_Error( 302, "Author skipped" );
-			}
-
-			// Do the expensive processing here.
-			// ...
-
-			// Return true if the item processing is successful.
-			return true;
-		}
-		
-		/**
-		 * Called when specific process is finished (all items were processed).
-		 * This method can be overriden in the process class.
-		 * @return void
-		 */
-		public function finish() {
-			// Do something after process is finished.
-			// You have $this->items, etc.
-		}
-	}
-}
-
-```
-
-After creating the class, class instance needs to be registered in order to be available in the batches list in the admin area.
-
-```php
-/**
- * Initialize the batches.
- */
-function wp_batch_processing_init() {
-    $batch = new MY_Example_Batch();
-    WP_Batch_Processor::get_instance()->register( $batch );
-}
-add_action( 'wp_batch_processing_init', 'wp_batch_processing_init', 15, 1 );
-```
-
-That's it.
-
-## Hooks
-
-Set delay between processing items. Default is 0 (no delay)
-```php
-function wp_bp_my_custom_delay($delay) {
-   return 2; // in seconds
-}
-add_filter('wp_batch_processing_delay', 'wp_bp_my_custom_delay', 10, 1);
-```
-
-## Example use cases
-
-The tool can be used in many different ways. For example
-
-* Importing data
-* Downloading data
-* Emailing
-* Database modifications
-
+The plugin loads only in the admin. To define a batch of your own, see [Writing a batch](https://github.com/UAMS-Web/uamswp-batch-processing-fad/wiki/Writing-a-batch) in the wiki.
 
 ## Contribute
 
