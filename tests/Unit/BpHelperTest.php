@@ -9,6 +9,8 @@
 
 declare(strict_types=1);
 
+use Brain\Monkey\Functions;
+
 use function Brain\Monkey\Functions\when;
 
 it('reports a view that does not exist', function (): void {
@@ -141,4 +143,34 @@ describe('first_meta_values', function (): void {
     it('is empty when the meta is not an array', function (mixed $meta): void {
         expect(WP_BP_Helper::first_meta_values($meta))->toBe([]);
     })->with(['false' => [false], 'string' => ['x'], 'null' => [null]]);
+});
+
+describe('term_post_exists', function (): void {
+    it('looks for one post of the type with the title, in any status but trash and auto-draft', function (): void {
+        Functions\expect('get_posts')->once()->with([
+            'post_type' => 'condition',
+            'title' => 'Asthma',
+            'post_status' => 'any',
+            'posts_per_page' => 1,
+            'fields' => 'ids',
+            'no_found_rows' => true,
+        ])->andReturn([42]);
+
+        expect(WP_BP_Helper::term_post_exists('Asthma', 'condition'))->toBeTrue();
+    });
+
+    it('is false when no post of the type has the title', function (): void {
+        when('get_posts')->justReturn([]);
+
+        expect(WP_BP_Helper::term_post_exists('Asthma', 'condition'))->toBeFalse();
+    });
+
+    it('does not consult the post at an id', function (): void {
+        Functions\expect('get_post_type')->never();
+        Functions\expect('get_post')->never();
+
+        when('get_posts')->justReturn([]);
+
+        WP_BP_Helper::term_post_exists('Asthma', 'condition');
+    });
 });
