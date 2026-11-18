@@ -10,7 +10,7 @@ Written against v1.1.0.
 - [Every item takes a long time](#every-item-takes-a-long-time)
 - [A batch shows 100% but some items were not processed](#a-batch-shows-100-but-some-items-were-not-processed)
 - [Running a Make Posts from Taxonomy batch again created duplicate posts](#running-a-make-posts-from-taxonomy-batch-again-created-duplicate-posts)
-- [The log shows `get_page_by_title is deprecated`](#the-log-shows-get_page_by_title-is-deprecated)
+- [The log says `get_page_by_title` is deprecated since version 6.2.0](#the-log-says-get_page_by_title-is-deprecated-since-version-620)
 - [The NRC cache batch finished but a provider has no cached data](#the-nrc-cache-batch-finished-but-a-provider-has-no-cached-data)
 
 ## There is no Batches menu
@@ -27,27 +27,27 @@ Written against v1.1.0.
 
 ## A batch I wrote is not on the Batches screen
 
-**Cause:** batches are registered on `wp_batch_processing_init`, which fires on `init` at priority 0. An `add_action( 'wp_batch_processing_init', ... )` made inside an `init` callback, or from code that loads after `init`, is added after the action has fired, so the batch is never registered. A class wrapped in `if ( class_exists( 'WP_Batch' ) )` is also skipped when it loads before this plugin.
+**Cause:** batches are registered on `wp_batch_processing_init`, which fires on `init` at priority 0. An `add_action( 'wp_batch_processing_init', ... )` made inside an `init` callback, or from code that loads after `init`, is added after the action has fired, so the batch is never registered. A class wrapped in `if ( class_exists( 'WP_Batch' ) )` is also skipped when it loads before this plugin. If the registration sits outside that block, the callback is still hooked and the Batches screen instead fails with a fatal `Class "..." not found` error.
 
 **Fix:** add the action when your plugin's main file loads, and define the class where `WP_Batch` already exists, for example in a file required from a `plugins_loaded` callback.
 
 ## An `HTTP Error.` alert stops processing
 
-**Cause:** an item request failed outright rather than returning a result. Typical reasons are a PHP fatal error inside the batch's `process()` or `setup()`, a server time limit, or a request refused with `403` because the session ended or the user lost `manage_options`.
+**Cause:** an item request failed outright rather than returning a result. Typical reasons are a PHP fatal error inside the batch's `process()` or `setup()`, a server time limit, or a request refused with `400` because the session ended, or with `403` because the user lost `manage_options`.
 
 **Fix:** check the PHP error log for the request's time, fix the cause, reload the batch screen and choose **Start**. Processing resumes with the next unprocessed item. An item that failed before it was recorded as processed runs again.
 
 ## `Permission denied.` or `Invalid batch id` repeats without stopping
 
-**Cause:** the batch screen's security nonce has expired (the page was left open for many hours), or the batch stopped being registered while its screen was open. The request is refused with a message but no progress data, and the runner reads that as "not finished" and asks again at once, so the red message and **List of errors** grow without end and the counts do not move.
+**Cause:** the batch screen's security nonce has expired (the page was left open for many hours), or the batch stopped being registered while its screen was open. The request is refused with a message but no progress data, and the runner reads that as "not finished" and asks again at once, so the red message and **List of errors** grow without end, the Total and Processed counts do not move, and the percentage reads `(undefined%)`.
 
 **Fix:** choose **Stop**, or reload the page, which issues a fresh nonce. Then choose **Start**. Nothing was recorded as processed while the message repeated.
 
 ## Every item takes a long time
 
-**Cause:** the batch's `setup()` runs on every item request, because the batch is constructed again for each one. The shipped batches query every post of a post type in `setup()`, so a large site pays for that query on every item.
+**Cause:** every registered batch is constructed, and its `setup()` run, on every Batches screen load and every item request, whichever batch is running. The 12 shipped batches each query every term or post of a type in `setup()`, so a large site pays for all 12 queries on every item, including items of your own batch.
 
-**Fix:** for your own batches, cache the list `setup()` builds. For a shipped batch, expect the cost and use `wp_batch_processing_delay` only when the server needs a pause between items ([Hooks and stored data](Hooks-and-stored-data.md#filters)).
+**Fix:** cache the list your own batches' `setup()` builds; that removes their share but not the shipped batches'. Expect the cost of the shipped batches, and use `wp_batch_processing_delay` only when the server needs a pause between items ([Hooks and stored data](Hooks-and-stored-data.md#filters)).
 
 ## A batch shows 100% but some items were not processed
 
@@ -59,9 +59,11 @@ Written against v1.1.0.
 
 **Cause:** *Make Condition Posts from Taxonomy* and *Make Treatment Posts from Taxonomy* skip a term only when a **page** already has its name as its title. An existing `condition` or `treatment` post does not stop them, so a second run creates a second post per term, with an ordinary ID because the offset ID is taken.
 
-**Fix:** run each of these batches once per site. To remove the duplicates, delete the posts whose IDs are not the term ID plus the offset (`100000` for conditions, `200000` for treatments).
+**Fix:** run each of these batches once per site. To remove duplicates, take each term in turn, find the posts of that post type whose title is the term's name, keep the one whose ID is the term ID plus the offset (`100000` for conditions, `200000` for treatments) and delete the others. Do not delete a post only because its ID does not match the offset: a post made by hand, or on a first run where the offset ID was taken, has an ordinary ID too.
 
-## The log shows `get_page_by_title is deprecated`
+## The log says `get_page_by_title` is deprecated since version 6.2.0
+
+The notice reads `Function get_page_by_title is deprecated since version 6.2.0! Use WP_Query instead.`, with `deprecated` in bold where it is shown as HTML.
 
 **Cause:** the two *Make ... Posts from Taxonomy* batches call `get_page_by_title()`, which WordPress deprecated in 6.2. With `WP_DEBUG` on, each item logs the notice.
 
@@ -69,6 +71,6 @@ Written against v1.1.0.
 
 ## The NRC cache batch finished but a provider has no cached data
 
-**Cause:** *Update Cache Providers NRC Data* stores the response only when the request succeeds, skips a provider with no `physician_npi`, and skips a provider whose transient is still stored.
+**Cause:** *Update Cache Providers NRC Data* skips a provider with no `physician_npi`, skips a provider whose transient is still stored, and stores nothing when the request could not be made at all. An error response from the server (a `404` or `500`) is stored for 30 days like any other, so a provider can also have cached data that is an error.
 
-**Fix:** check that the provider has an NPI, then restart the batch and run it again. A failed request is retried on the next run.
+**Fix:** check that the provider has an NPI. To refetch a provider whose cached response is an error, delete its `nrc_backup_<npi>` transient, then restart the batch and run it again.

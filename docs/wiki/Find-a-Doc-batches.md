@@ -28,10 +28,12 @@ The taxonomy-to-post batches create each condition post with the ID of its `cond
 | Update Conditions Sync to Treatments | `conditions_update_sync_batch` | `condition_treatments` on every `condition` post | adds the condition to `treatment_conditions` on each treatment it names, when it is not already there |
 | Update Treatments Sync to Conditions | `treatments_update_sync_batch` | `treatment_conditions` on every `treatment` post | adds the treatment to `condition_treatments` on each condition it names, when it is not already there |
 | Update Providers Regions | `providers_update_regions` | the first location in `physician_locations` on every `provider` post, and that location's `location_region` | `physician_region` |
-| Update Providers Filter | `providers_update_filter` | the titles of the provider's areas of expertise, conditions and treatments | `physician_asp_filter`, as one comma-separated list in that order |
-| Update Cache Providers NRC Data | `providers_cache_nrc_data` | `physician_npi` on every `provider` post | a 30-day transient `nrc_backup_<npi>` holding the provider's NRC Health ratings response, fetched only when no transient is stored; a failed request stores nothing |
+| Update Providers Filter | `providers_update_filter` | the titles of the posts in `physician_expertise`, `physician_conditions_cpt` and `physician_treatments_cpt` on every `provider` post (run *Update Providers Post from Taxonomy* first) | `physician_asp_filter`: the three lists joined with `, `, which keeps the separator when a list is empty |
+| Update Cache Providers NRC Data | `providers_cache_nrc_data` | `physician_npi` on every `provider` post | a 30-day transient `nrc_backup_<npi>` holding the provider's NRC Health ratings response, fetched only when no transient is stored. A request that could not be made stores nothing, but an error response from the server (a `404` or `500`) is stored for 30 days like any other |
 
-The two taxonomy batches read terms ordered by name. Every other batch reads posts in any status, ordered by title.
+The two taxonomy batches read terms ordered by name. Every other batch reads posts in every status except trash and auto-draft, ordered by title.
+
+**Note:** every registered batch runs its `setup()` query on every Batches screen load and every item request, whichever batch is running. See [Troubleshooting](Troubleshooting.md#every-item-takes-a-long-time).
 
 **Warning:** the two *Make ... Posts from Taxonomy* batches skip a term only when a **page** (the `page` post type) already has the term's name as its title, because they check with `get_page_by_title()` and its default post type. An existing `condition` or `treatment` post with that title does not stop them, so running either batch a second time creates a second post per term. WordPress uses the offset ID only when it is free, so the second post gets an ordinary ID.
 
