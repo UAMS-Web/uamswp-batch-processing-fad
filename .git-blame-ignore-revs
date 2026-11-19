@@ -7,3 +7,6 @@
 #
 # Adopt Rector, PHPStan and Pint (#58): the squash commit holding the Pint reformat of the whole tree
 2a461e3413ca48a992b3c32d11eb884f4038fe2d
+#
+# Store assets/processor.js with LF line endings (#100): line endings only, every line of that file
+32dcb3b07095c1045b486594b3c8b5ec6ae41961
