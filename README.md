@@ -80,7 +80,7 @@ git config blame.ignoreRevsFile .git-blame-ignore-revs
 
 ### Remote CI is the gate
 
-The repository is public, so its GitHub Actions runs cost no minutes and run on every pull request and every push to `master`. `.github/workflows/ci.yml` calls the shared chain in `UAMS-Web/uams-ci-workflows`, pinned to a release tag, runs the `JS tests` job, and ends in the one job named `CI`, which fails unless every job before it succeeded. The ruleset on `master` requires `CI` and the two pull-request body checks, `Attribution footer` and `Closing keywords`.
+The repository is public, so its GitHub Actions runs cost no minutes and run on every pull request and every push to `master`. `.github/workflows/ci.yml` calls the shared chain in `UAMS-Web/uams-ci-workflows`, pinned to a release tag, runs the `JS tests` job, and ends in the one job named `CI`, which fails unless every job before it succeeded. Two organization rulesets on `master` require these checks: one requires `CI`, and the other the two pull-request body checks, `Attribution footer` and `Closing keywords`.
 
 The Actions variable `RUN_REMOTE_CI` is a kill-switch left from when the repository was private. It is unset, which runs everything. Set to `false`, every job reports `skipped`, and a skipped job proves nothing, so leave it unset. To take a newer chain, move the pin in `ci.yml` and pass only inputs the new tag declares.
 

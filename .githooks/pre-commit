@@ -13,23 +13,24 @@
 #
 #     git config core.hooksPath .githooks
 #
-# With node on PATH the patterns are read and matched exactly as the runner
-# does (JavaScript regular expressions), and any failure to evaluate them
-# refuses the commit. Without node, a small sh parser reads the array and
-# `grep -E` matches, which agrees for patterns like `sentinel-key\.php$` and
-# `\.sql(\.gz)?$`, the form the template uses. That parser cannot
-# read a pattern containing `]` (a character class); it refuses every commit
-# rather than guess, and so does a pattern `grep -E` cannot compile (patterns match case-insensitively in every path: `RegExp` with the `i` flag, `grep -Ei` here). A pattern
-# `grep -E` reads differently from JavaScript may match differently here than
-# with node. Install node, or write the pattern without a character class (list the
-# alternatives, as the template does).
+# With node on PATH the patterns are read and matched as JavaScript regular
+# expressions, and any failure to evaluate them refuses the commit. Without
+# node, a small sh parser reads the array and `grep -E` matches, which agrees
+# for patterns like `sentinel-key\.php$` and `\.sql(\.gz)?$`, the form
+# local-ci.json uses. That parser cannot read a pattern containing `]` (a
+# character class); it refuses every commit rather than guess, and so does a
+# pattern `grep -E` cannot compile. Patterns match case-insensitively in every
+# path: `RegExp` with the `i` flag, `grep -Ei` here. A pattern `grep -E` reads
+# differently from JavaScript may match differently here than with node.
+# Install node, or write the pattern without a character class (list the
+# alternatives, as local-ci.json does).
 #
 # POSIX sh only. No dependency beyond git, and node when it is present.
 
 CONFIG="local-ci.json"
 
 if [ ! -f "$CONFIG" ]; then
-    echo "pre-commit: $CONFIG is missing; skipping the guard.deny check (not adopted yet)." >&2
+    echo "pre-commit: $CONFIG is missing; skipping the guard.deny check." >&2
     echo "pre-commit: restore $CONFIG at the repository root, or the guard never runs." >&2
     exit 0
 fi
@@ -46,7 +47,7 @@ denied=""
 
 if command -v node >/dev/null 2>&1; then
     # One node process: read the config, match every staged path, print
-    # "<path>\t<pattern>" per hit. A config the runner would refuse (bad JSON,
+    # "<path>\t<pattern>" per hit. A config that cannot be read (bad JSON,
     # a pattern that is not a regular expression) refuses the commit too,
     # naming the problem, rather than passing with a guard that did not run.
     denied=$(printf '%s\n' "$staged" | node -e '
