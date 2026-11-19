@@ -28,7 +28,13 @@ function loadRunner() {
         const wrapper = {
             state,
             text(value) { state.text = value; return wrapper; },
-            html(value) { state.html = value instanceof Object && value.state ? value.state.text : value; return wrapper; },
+            // An element keeps its text in `html` and the markup it was made from in `htmlSource`.
+            html(value) {
+                const isElement = value instanceof Object && value.state;
+                state.html = isElement ? value.state.text : value;
+                state.htmlSource = isElement ? value.state.selector.replace(/^new:\d+:/, '') : value;
+                return wrapper;
+            },
             prop(name, value) { state.props[name] = value; return wrapper; },
             css(name, value) { state.css[name] = value; return wrapper; },
             show() { state.shown = true; return wrapper; },
@@ -58,6 +64,11 @@ function loadRunner() {
     };
     $.ajax = (options) => { requests.push(options); };
 
+    // Counts every assignment to location.href, which is how the runner reloads the page.
+    const page = 'https://example.test/wp-admin/admin.php?page=dg-batches';
+    const location = { reloads: 0 };
+    Object.defineProperty(location, 'href', { get: () => page, set: () => { location.reloads += 1; } });
+
     const sandbox = {
         jQuery: $,
         document,
@@ -68,7 +79,7 @@ function loadRunner() {
             delay: 0,
             text: { processing: 'Processing...', start: 'Start' },
         },
-        window: { location: { href: 'https://example.test/wp-admin/admin.php?page=dg-batches' } },
+        window: { location: location },
         console: { log() {} },
         setTimeout: (fn) => fn(),
         alert: (message) => { requests.alerts.push(message); },
@@ -91,7 +102,16 @@ function loadRunner() {
         request.success(response);
     };
 
-    return { click, answer, requests, state: (selector) => element(selector).state };
+    // Fails the oldest unanswered request, as jQuery would on an HTTP error.
+    const fail = () => {
+        const request = requests[answered];
+        assert.ok(request, `no request is waiting for an answer (answered ${answered} of ${requests.length})`);
+        answered += 1;
+        assert.equal(typeof request.error, 'function', 'the request has no error callback');
+        request.error();
+    };
+
+    return { click, answer, fail, requests, location, state: (selector) => element(selector).state };
 }
 
 const progress = (overrides) => ({
@@ -109,6 +129,7 @@ for (const message of ['Permission denied.', 'Invalid batch id']) {
 
         assert.equal(page.requests.length, 1, 'the runner sent another request after the refusal');
         assert.equal(page.state('.batch-process-current-item').html, message);
+        assert.match(page.state('.batch-process-current-item').htmlSource, /color: red/);
         assert.deepEqual(page.state('#batch-errors-list').children, [message]);
         assert.equal(page.state('#batch-errors').shown, true);
         assert.equal(page.state('#batch-process-start').text, 'Start');
@@ -159,4 +180,54 @@ test('a finished batch stops requesting and disables Start and Stop', () => {
     assert.equal(page.requests.length, 1);
     assert.equal(page.state('#batch-process-start').text, 'Start');
     assert.equal(page.state('#batch-process-start, #batch-process-stop').props.disabled, true);
+});
+
+for (const message of ['Permission denied.', 'Invalid batch id']) {
+    test(`a refused restart (${message}) shows its message and does not reload the page`, () => {
+        const page = loadRunner();
+        page.click('#batch-process-restart');
+        assert.equal(page.requests.length, 1);
+        assert.match(page.requests[0].url, /action=dg_restart_batch/);
+
+        page.answer({ success: false, data: { message } });
+
+        assert.equal(page.location.reloads, 0, 'the page reloaded after a refused restart');
+        assert.equal(page.state('.batch-process-current-item').html, message);
+        assert.match(page.state('.batch-process-current-item').htmlSource, /color: red/);
+        assert.deepEqual(page.state('#batch-errors-list').children, [message]);
+        assert.equal(page.state('#batch-errors').shown, true);
+    });
+}
+
+for (const body of ['0', null]) {
+    test(`a refused restart with no JSON body (${JSON.stringify(body)}) says the request was refused`, () => {
+        const page = loadRunner();
+        page.click('#batch-process-restart');
+
+        page.answer(body);
+
+        assert.equal(page.location.reloads, 0);
+        assert.deepEqual(page.state('#batch-errors-list').children, ['The request was refused.']);
+    });
+}
+
+test('a successful restart reloads the page', () => {
+    const page = loadRunner();
+    page.click('#batch-process-restart');
+
+    page.answer({ success: true });
+
+    assert.equal(page.location.reloads, 1);
+    assert.deepEqual(page.state('#batch-errors-list').children, []);
+});
+
+test('a failed restart request shows a message and does not reload the page', () => {
+    const page = loadRunner();
+    page.click('#batch-process-restart');
+
+    page.fail();
+
+    assert.equal(page.location.reloads, 0);
+    assert.equal(page.state('.batch-process-current-item').html, 'The restart request failed.');
+    assert.deepEqual(page.state('#batch-errors-list').children, ['The restart request failed.']);
 });
