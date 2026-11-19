@@ -2,8 +2,9 @@
 // no packages: the runner is loaded into a sandbox with a small stand-in for jQuery that records
 // every request and every change to the page, and each test answers the requests by hand.
 //
-// Run them with `node --test tests/js/`. PROCESSOR_JS points the tests at another copy of the
-// runner, so a reverted copy can be shown to fail them.
+// Run them with `node --test tests/js/*.test.mjs`. Name the files: on Node v24.22.3 a bare
+// `tests/js/` argument is run as a module and fails with MODULE_NOT_FOUND. PROCESSOR_JS points
+// the tests at another copy of the runner, so a reverted copy can be shown to fail them.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';

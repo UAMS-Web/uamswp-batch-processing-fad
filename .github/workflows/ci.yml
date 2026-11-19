@@ -89,7 +89,7 @@ jobs:
       - name: Run the runner's tests
         run: |
           node --version
-          node --test tests/js/
+          node --test tests/js/*.test.mjs
 
   # The one check a ruleset requires from this workflow. Keep `needs:` naming the call and every job.
   ci:
