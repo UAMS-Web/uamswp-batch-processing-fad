@@ -6,13 +6,13 @@ Written against v1.1.0.
 - [A batch screen says `Batch not found.`](#a-batch-screen-says-batch-not-found)
 - [A batch I wrote is not on the Batches screen](#a-batch-i-wrote-is-not-on-the-batches-screen)
 - [An `HTTP Error.` alert stops processing](#an-http-error-alert-stops-processing)
-- [`Permission denied.` or `Invalid batch id` repeats without stopping](#permission-denied-or-invalid-batch-id-repeats-without-stopping)
 - [Every item takes a long time](#every-item-takes-a-long-time)
 - [A batch shows 100% but some items were not processed](#a-batch-shows-100-but-some-items-were-not-processed)
 - [The NRC cache batch finished but a provider has no cached data](#the-nrc-cache-batch-finished-but-a-provider-has-no-cached-data)
 - [Fixed](#fixed)
   - [Running a Make Posts from Taxonomy batch again created duplicate posts](#running-a-make-posts-from-taxonomy-batch-again-created-duplicate-posts)
   - [The log says `get_page_by_title` is deprecated since version 6.2.0](#the-log-says-get_page_by_title-is-deprecated-since-version-620)
+  - [`Permission denied.` or `Invalid batch id` repeats without stopping](#permission-denied-or-invalid-batch-id-repeats-without-stopping)
 
 ## There is no Batches menu
 
@@ -37,12 +37,6 @@ Written against v1.1.0.
 **Cause:** an item request failed outright rather than returning a result. Typical reasons are a PHP fatal error inside the batch's `process()` or `setup()`, a server time limit, or a request refused with `400` because the session ended, or with `403` because the user lost `manage_options`.
 
 **Fix:** check the PHP error log for the request's time, fix the cause, reload the batch screen and choose **Start**. Processing resumes with the next unprocessed item. An item that failed before it was recorded as processed runs again.
-
-## `Permission denied.` or `Invalid batch id` repeats without stopping
-
-**Cause:** the batch screen's security nonce has expired (the page was left open for many hours), or the batch stopped being registered while its screen was open. The request is refused with a message but no progress data, and the runner reads that as "not finished" and asks again at once, so the red message and **List of errors** grow without end, the Total and Processed counts do not move, and the percentage reads `(undefined%)`.
-
-**Fix:** choose **Stop**, or reload the page, which issues a fresh nonce. Then choose **Start**. Nothing was recorded as processed while the message repeated.
 
 ## Every item takes a long time
 
@@ -83,3 +77,11 @@ The notice reads `Function get_page_by_title is deprecated since version 6.2.0! 
 **Cause:** in v1.1.0, the two *Make ... Posts from Taxonomy* batches call `get_page_by_title()`, which WordPress deprecated in 6.2. With `WP_DEBUG` on, each item logs the notice.
 
 **Fix:** in v1.1.0, none needed for the batch to run; the notice does not stop it.
+
+### `Permission denied.` or `Invalid batch id` repeats without stopping
+
+Fixed after v1.1.0 ([#91](https://github.com/UAMS-Web/uamswp-batch-processing-fad/issues/91)): a refused request now shows its message once, in red and in **List of errors**, and the runner stops and enables **Start** again. Reload the page for a fresh nonce before choosing **Start**.
+
+**Cause:** in v1.1.0, the batch screen's security nonce has expired (the page was left open for many hours), or the batch stopped being registered while its screen was open. The request is refused with a message but no progress data, and the runner reads that as "not finished" and asks again at once, so the red message and **List of errors** grow without end, the Total and Processed counts do not move, and the percentage reads `(undefined%)`.
+
+**Fix:** in v1.1.0, choose **Stop**, or reload the page, which issues a fresh nonce. Then choose **Start**. Nothing was recorded as processed while the message repeated.

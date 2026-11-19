@@ -74,10 +74,27 @@ jobs:
       download-archive-command: node .claude/skills/download-archive-check/check-download-archive.mjs
       pest-command: composer test:unit
 
-  # The one check a ruleset requires from this workflow. Keep `needs:` naming the call.
+  # The batch screen's runner, assets/processor.js. Its tests use Node's own test runner and no
+  # packages, so the job installs nothing; the runner image's Node is enough (18 or later).
+  js:
+    name: JS tests
+    # Budget kill-switch: see the RUN_REMOTE_CI note in the header.
+    if: vars.RUN_REMOTE_CI != 'false'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Run the runner's tests
+        run: |
+          node --version
+          node --test tests/js/
+
+  # The one check a ruleset requires from this workflow. Keep `needs:` naming the call and every job.
   ci:
     name: CI
-    needs: [checks]
+    needs: [checks, js]
     # Budget kill-switch: see the RUN_REMOTE_CI note in the header.
     if: always() && vars.RUN_REMOTE_CI != 'false'
     runs-on: ubuntu-latest

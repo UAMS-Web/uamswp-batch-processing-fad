@@ -23,6 +23,21 @@
 		});
 	};
 
+	// A refused request (an expired nonce, a batch that is no longer registered) answers with a
+	// message and no progress data. It is not a processed item, so it carries no is_finished.
+	var is_refusal = function(response) {
+		return !response || !response.data || typeof response.data.is_finished === 'undefined';
+	};
+
+	// Shows a refusal's message once, stops requesting, and enables Start again.
+	var stop_on_refusal = function(response) {
+		var message = (response && response.data && response.data.message) ? response.data.message : 'The request was refused.';
+		$('.batch-process-current-item').html($('<span style="color: red;"></span>').text(message));
+		$('#batch-errors').show();
+		$('#batch-errors-list').append($('<li></li>').text(message));
+		$('#batch-process-start').text(DgBatchRunner.text.start).prop('disabled', false);
+	};
+
 	var process_next_item = function() {
 		var nonce = DgBatchRunner.nonce;
 		var batch = DgBatchRunner.batch_id;
@@ -37,6 +52,10 @@
 				$('#batch-process-start').text(DgBatchRunner.text.processing).prop('disabled', true);
 			},
 			success: function(response) {
+				if(is_refusal(response)) {
+					stop_on_refusal(response);
+					return;
+				}
 				$(document).trigger('itemprocessed', [response])
 				if(!response.data.is_finished) {
 					if(delay > 0) {
