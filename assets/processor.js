@@ -17,8 +17,16 @@
 			type: 'POST',
 			data: {batch_id: batch},
 			cache: false,
+			// Reload only once the batch is cleared; a refused or failed request leaves it as it was.
 			success: function(response) {
-				reload();
+				if(response && response.success) {
+					reload();
+				} else {
+					show_error(refusal_message(response));
+				}
+			},
+			error: function() {
+				show_error('The restart request failed.');
 			}
 		});
 	};
@@ -29,12 +37,21 @@
 		return !response || !response.data || typeof response.data.is_finished === 'undefined';
 	};
 
-	// Shows a refusal's message once, stops requesting, and enables Start again.
-	var stop_on_refusal = function(response) {
-		var message = (response && response.data && response.data.message) ? response.data.message : 'The request was refused.';
+	// A refusal's own message, or a general one when the body carries none.
+	var refusal_message = function(response) {
+		return (response && response.data && response.data.message) ? response.data.message : 'The request was refused.';
+	};
+
+	// Shows a message in red and adds it once to List of errors, escaped as text.
+	var show_error = function(message) {
 		$('.batch-process-current-item').html($('<span style="color: red;"></span>').text(message));
 		$('#batch-errors').show();
 		$('#batch-errors-list').append($('<li></li>').text(message));
+	};
+
+	// Shows a refusal's message once, stops requesting, and enables Start again.
+	var stop_on_refusal = function(response) {
+		show_error(refusal_message(response));
 		$('#batch-process-start').text(DgBatchRunner.text.start).prop('disabled', false);
 	};
 
