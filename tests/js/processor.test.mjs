@@ -28,7 +28,13 @@ function loadRunner() {
         const wrapper = {
             state,
             text(value) { state.text = value; return wrapper; },
-            html(value) { state.html = value instanceof Object && value.state ? value.state.text : value; return wrapper; },
+            // An element keeps its text in `html` and the markup it was made from in `htmlSource`.
+            html(value) {
+                const isElement = value instanceof Object && value.state;
+                state.html = isElement ? value.state.text : value;
+                state.htmlSource = isElement ? value.state.selector.replace(/^new:\d+:/, '') : value;
+                return wrapper;
+            },
             prop(name, value) { state.props[name] = value; return wrapper; },
             css(name, value) { state.css[name] = value; return wrapper; },
             show() { state.shown = true; return wrapper; },
@@ -123,6 +129,7 @@ for (const message of ['Permission denied.', 'Invalid batch id']) {
 
         assert.equal(page.requests.length, 1, 'the runner sent another request after the refusal');
         assert.equal(page.state('.batch-process-current-item').html, message);
+        assert.match(page.state('.batch-process-current-item').htmlSource, /color: red/);
         assert.deepEqual(page.state('#batch-errors-list').children, [message]);
         assert.equal(page.state('#batch-errors').shown, true);
         assert.equal(page.state('#batch-process-start').text, 'Start');
@@ -186,20 +193,23 @@ for (const message of ['Permission denied.', 'Invalid batch id']) {
 
         assert.equal(page.location.reloads, 0, 'the page reloaded after a refused restart');
         assert.equal(page.state('.batch-process-current-item').html, message);
+        assert.match(page.state('.batch-process-current-item').htmlSource, /color: red/);
         assert.deepEqual(page.state('#batch-errors-list').children, [message]);
         assert.equal(page.state('#batch-errors').shown, true);
     });
 }
 
-test('a refused restart with no JSON body says the request was refused', () => {
-    const page = loadRunner();
-    page.click('#batch-process-restart');
+for (const body of ['0', null]) {
+    test(`a refused restart with no JSON body (${JSON.stringify(body)}) says the request was refused`, () => {
+        const page = loadRunner();
+        page.click('#batch-process-restart');
 
-    page.answer('0');
+        page.answer(body);
 
-    assert.equal(page.location.reloads, 0);
-    assert.deepEqual(page.state('#batch-errors-list').children, ['The request was refused.']);
-});
+        assert.equal(page.location.reloads, 0);
+        assert.deepEqual(page.state('#batch-errors-list').children, ['The request was refused.']);
+    });
+}
 
 test('a successful restart reloads the page', () => {
     const page = loadRunner();
