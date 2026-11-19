@@ -80,7 +80,7 @@ The notice reads `Function get_page_by_title is deprecated since version 6.2.0! 
 
 ### `Permission denied.` or `Invalid batch id` repeats without stopping
 
-Fixed after v1.1.0 ([#91](https://github.com/UAMS-Web/uamswp-batch-processing-fad/issues/91)): a refused request now shows its message once, in red and in **List of errors**, and the runner stops and enables **Start** again. Reload the page for a fresh nonce before choosing **Start**.
+Fixed after v1.1.0 ([#91](https://github.com/UAMS-Web/uamswp-batch-processing-fad/issues/91)): a refused request now shows its message once, in red and in **List of errors**, and the runner stops and enables **Start** again. After an expired nonce, reload the page for a fresh one before choosing **Start**. After `Invalid batch id`, reloading shows [`Batch not found.`](#a-batch-screen-says-batch-not-found) until the batch is registered again.
 
 **Cause:** in v1.1.0, the batch screen's security nonce has expired (the page was left open for many hours), or the batch stopped being registered while its screen was open. The request is refused with a message but no progress data, and the runner reads that as "not finished" and asks again at once, so the red message and **List of errors** grow without end, the Total and Processed counts do not move, and the percentage reads `(undefined%)`.
 
