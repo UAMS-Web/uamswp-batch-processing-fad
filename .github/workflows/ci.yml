@@ -3,13 +3,11 @@ name: CI
 # RUN_REMOTE_CI: budget kill-switch.
 # GitHub Actions minutes bill at the organization level, one pool shared by
 # every UAMS-Web repository, and only private repositories consume them. This
-# repository is private. The call, the `JS tests` job and the `CI` job below are gated on
-# `if: vars.RUN_REMOTE_CI != 'false'`: with the variable set to `false` they
-# report `skipped` and consume no runner minutes; unset, or any other value,
-# runs them as before.
-#
-# While the switch is off, the local CI runner (.claude/skills/local-ci/) is
-# the whole gate, not a fallback. Its verdict is posted on the pull request.
+# repository is public, so its runs cost no minutes, and remote CI is its whole
+# gate: there is no local CI runner. The call, the `JS tests` job and the `CI`
+# job below are gated on `if: vars.RUN_REMOTE_CI != 'false'`, left from when the
+# repository was private: with the variable set to `false` they report `skipped`,
+# which proves nothing. Leave it unset.
 #
 # The lint and unit chain is the shared one, `UAMS-Web/uams-ci-workflows`, called by the
 # `checks` job. One definition serves every UAMS-Web repository, so this plugin does not
