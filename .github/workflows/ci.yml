@@ -3,7 +3,7 @@ name: CI
 # RUN_REMOTE_CI: budget kill-switch.
 # GitHub Actions minutes bill at the organization level, one pool shared by
 # every UAMS-Web repository, and only private repositories consume them. This
-# repository is private. The call and the `CI` job below are gated on
+# repository is private. The call, the `JS tests` job and the `CI` job below are gated on
 # `if: vars.RUN_REMOTE_CI != 'false'`: with the variable set to `false` they
 # report `skipped` and consume no runner minutes; unset, or any other value,
 # runs them as before.
@@ -23,8 +23,8 @@ name: CI
 #
 # The last job, `CI`, is the one check a ruleset requires from this workflow (with the two
 # pull-request-body checks, `Attribution footer` and `Closing keywords`). It `needs:` the
-# call, runs `if: always()` while the switch is on, and fails unless the call reports
-# `success`: a `skipped` or `cancelled` call fails it. The call ends in a `Chain result` job
+# call and the `JS tests` job, runs `if: always()` while the switch is on, and fails unless
+# each of them reports `success`: a `skipped` or `cancelled` one fails it. The call ends in a `Chain result` job
 # that needs every job in the chain, so `checks` is `success` only when each of them
 # succeeded. Adding a plain job here means adding it to the `needs:` list of `CI`; the
 # `aggregate-needs` job in the chain fails the pull request when one is missing. Do not
@@ -74,10 +74,27 @@ jobs:
       download-archive-command: node .claude/skills/download-archive-check/check-download-archive.mjs
       pest-command: composer test:unit
 
-  # The one check a ruleset requires from this workflow. Keep `needs:` naming the call.
+  # The batch screen's runner, assets/processor.js. Its tests use Node's own test runner and no
+  # packages, so the job installs nothing; the runner image's Node is enough (18 or later).
+  js:
+    name: JS tests
+    # Budget kill-switch: see the RUN_REMOTE_CI note in the header.
+    if: vars.RUN_REMOTE_CI != 'false'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Run the runner's tests
+        run: |
+          node --version
+          node --test tests/js/*.test.mjs
+
+  # The one check a ruleset requires from this workflow. Keep `needs:` naming the call and every job.
   ci:
     name: CI
-    needs: [checks]
+    needs: [checks, js]
     # Budget kill-switch: see the RUN_REMOTE_CI note in the header.
     if: always() && vars.RUN_REMOTE_CI != 'false'
     runs-on: ubuntu-latest
