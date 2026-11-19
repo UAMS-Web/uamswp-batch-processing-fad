@@ -35,38 +35,42 @@ Developers:
 - Todd McKee
 - Josh Daugherty
 
-## Tests
+## Development
 
-The suite uses Pest 5 with Brain Monkey, so it needs no database and no WordPress checkout. It develops and runs on PHP 8.4.27 (`config.platform.php` in `composer.json`).
+### Tests
+
+The PHP suite uses Pest 5 with Brain Monkey, so it needs no database and no WordPress checkout. It develops and runs on PHP 8.4.27 (`config.platform.php` in `composer.json`).
 
 ```bash
 composer install
 composer test
 ```
 
-`composer test` runs `vendor/bin/pest` over `tests/Unit`. The shared local CI runner runs the same suite with the rest of the checks:
+`composer test` runs `vendor/bin/pest` over `tests/Unit`. Name every test file `*Test.php`, or the suite does not pick it up.
+
+The batch screen's runner, `assets/processor.js`, has its own tests in `tests/js/`. They use Node's built-in test runner and install no packages:
 
 ```bash
-node .claude/skills/local-ci/local-ci.mjs
+node --test tests/js/*.test.mjs
 ```
 
-Name every test file `*Test.php`, or the suite does not pick it up.
+Name the files rather than the folder: some Node versions run a bare `tests/js/` argument as a module and fail.
 
 ### Mutation testing
 
-`composer mutate` mutates `includes/`, `fad/` and the plugin file against the Unit tests that cover them, with PCOV or Xdebug loaded (see the `pcov-setup` skill). The script names its test files because the Unit bootstrap loads Patchwork, and a run that names no test file scores kills it did not earn. Pass `-- --min=100` to fail on any survivor, and `-- --path=<file>` to mutate one file. The shared remote chain runs the same script on changed files for a pull request and on everything for a manual dispatch, behind the `RUN_REMOTE_CI` switch below.
+`composer mutate` mutates `includes/`, `fad/` and the plugin file against the Unit tests that cover them, with PCOV or Xdebug loaded (see the `pcov-setup` skill). The script names its test files because the Unit bootstrap loads Patchwork, and a run that names no test file scores kills it did not earn. Pass `-- --min=100` to fail on any survivor, and `-- --path=<file>` to mutate one file. The remote chain runs the same script on changed files for a pull request and on everything for a manual dispatch.
 
 ### Code quality
 
-Rector, PHPStan (with the WordPress extension and stubs) and Pint from the shared code-quality standard are development dependencies only, and each is a runner job and a Composer script:
+Rector, PHPStan (with the WordPress extension and stubs) and Pint from the shared code-quality standard are development dependencies only. Each is a Composer script and a job in the remote chain:
 
 | Tool | Check | Fix |
 | --- | --- | --- |
 | Rector | `composer test:refactor` | `composer refactor` |
-| PHPStan | `composer stan` | raise `level` in `phpstan.neon.dist` one level per change |
+| PHPStan | `composer stan` | fix the finding; `level` in `phpstan.neon.dist` is 10 |
 | Pint | `composer test:pint` | `composer pint` |
 
-PHPStan starts at level 0, the highest level the code passes today, and rises one level per change. The two Advanced Custom Fields functions the batches call are declared for it in `phpstan-stubs.php`.
+PHPStan runs at level 10, its highest. The two Advanced Custom Fields functions the batches call are declared for it in `phpstan-stubs.php`.
 
 `.git-blame-ignore-revs` lists the commit that reformatted the whole tree with Pint, so `git blame` skips it. Git reads the file only when told to, once per clone:
 
@@ -74,30 +78,23 @@ PHPStan starts at level 0, the highest level the code passes today, and rises on
 git config blame.ignoreRevsFile .git-blame-ignore-revs
 ```
 
-### Reading the runner's verdict
+### Remote CI is the gate
 
-The runner selects jobs from the branch's diff against `origin/master`, runs each on the local PHP toolchain, and ends with a summary block that names the validated commit and lists every job as `PASS`, `FAIL` or `SKIPPED`. A failing job fails the run: the exit status is non-zero exactly when the summary says a job failed, and the summary is what to read. Write the run to a file and read the block at the end:
+The repository is public, so its GitHub Actions runs cost no minutes and run on every pull request and every push to `master`. `.github/workflows/ci.yml` calls the shared chain in `UAMS-Web/uams-ci-workflows`, pinned to a release tag, runs the `JS tests` job, and ends in the one job named `CI`, which fails unless every job before it succeeded. The ruleset on `master` requires `CI` and the two pull-request body checks, `Attribution footer` and `Closing keywords`.
 
-```bash
-node .claude/skills/local-ci/local-ci.mjs > ci.log 2>&1
-```
+The Actions variable `RUN_REMOTE_CI` is a kill-switch left from when the repository was private. It is unset, which runs everything. Set to `false`, every job reports `skipped`, and a skipped job proves nothing, so leave it unset. To take a newer chain, move the pin in `ci.yml` and pass only inputs the new tag declares.
 
-`--jobs a,b` runs named jobs only and `--all` runs every job; the two exclude each other. The jobs live in `local-ci.json`. A pull request carries the runner's verdict as a comment naming the commit it validated.
-
-### Remote CI
-
-`.github/workflows/ci.yml` calls the shared chain in `UAMS-Web/uams-ci-workflows`, pinned to a release tag, and ends in the one job named `CI`. The repository is private, so the call and `CI` are gated on the Actions variable `RUN_REMOTE_CI`: set to `false`, they report `skipped` and use no minutes, and the local runner above is the whole gate. Unset, or any other value, runs the chain. A `skipped` job proves nothing. To take a newer chain, move the pin in `ci.yml` and pass only inputs the new tag declares.
+There is no local CI runner. To check a change before pushing, run the Composer scripts and the JS tests above.
 
 ### Pre-commit guard
 
-`.githooks/pre-commit` refuses a commit that stages a file matching `guard.deny` in `local-ci.json` (a `wp-config.php`, a database dump, a spreadsheet export, an `.env`, a key). Git does not run a hook from the repository on its own, so each clone turns it on once:
+`.githooks/pre-commit` refuses a commit that stages a file matching `guard.deny` in `local-ci.json` (a `wp-config.php`, a database dump, a spreadsheet export, an `.env`, a key). `guard.deny` is all that file holds; the hook reads it with Node, or with a plain `sh` parser where Node is not installed. Git does not run a hook from the repository on its own, so each clone turns it on once:
 
 ```bash
 git config core.hooksPath .githooks
 ```
 
-The runner warns when the hook is tracked and `core.hooksPath` is unset.
-
+Remote CI never sees a file that is not committed, and git history is permanent, so this hook is the only check that runs before a secret reaches a commit.
 
 ## License
 

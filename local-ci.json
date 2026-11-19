@@ -1,7 +1,4 @@
 {
-  "base": "master",
-  "php": "8.4",
-  "chain": false,
   "guard": {
     "deny": [
       "wp-config\\.php$",
@@ -11,52 +8,5 @@
       "\\.pem$",
       "\\.key$"
     ]
-  },
-  "jobs": [
-    {
-      "name": "lint",
-      "run": "php -l",
-      "each": ["**/*.php", "!vendor/**"],
-      "always": true
-    },
-    {
-      "name": "lint-floor",
-      "run": "php -l",
-      "php": "8.2",
-      "each": ["**/*.php", "!vendor/**", "!tests/**"],
-      "always": true
-    },
-    {
-      "name": "synced-files",
-      "run": "node .claude/skills/synced-files/scripts/check-synced-files.mjs",
-      "always": true,
-      "requires": ["bin:node"]
-    },
-    {
-      "name": "download-archive",
-      "run": "node .claude/skills/download-archive-check/check-download-archive.mjs",
-      "always": true,
-      "requires": ["bin:node", "bin:git"]
-    },
-    {
-      "name": "rector",
-      "run": "vendor/bin/rector --dry-run --no-progress-bar",
-      "paths": ["**/*.php", "!vendor/**", "!.claude/**", "!.agents/**", "rector.php", "composer.json", "composer.lock"]
-    },
-    {
-      "name": "phpstan",
-      "run": "composer stan",
-      "paths": ["**/*.php", "!vendor/**", "!.claude/**", "!.agents/**", "phpstan.neon.dist", "composer.json", "composer.lock"]
-    },
-    {
-      "name": "pint",
-      "run": "vendor/bin/pint --test",
-      "paths": ["**/*.php", "!vendor/**", "!.claude/**", "!.agents/**", "pint.json", "composer.json", "composer.lock"]
-    },
-    {
-      "name": "pest",
-      "run": "vendor/bin/pest",
-      "paths": ["**/*.php", "!vendor/**", "phpunit.xml*", "composer.json", "composer.lock"]
-    }
-  ]
+  }
 }

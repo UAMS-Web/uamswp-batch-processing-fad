@@ -4,10 +4,9 @@
 # pre-commit: refuse a commit that stages a file guard.deny forbids.
 #
 # The patterns come from `guard.deny` in local-ci.json at the repository root,
-# the same list the local CI runner's `guard` job checks over every tracked
-# file. The runner, like a GitHub Actions run, sees a file only after it has
-# been committed and pushed, and git history is permanent, so the check that
-# matters most runs here, before the commit exists.
+# which holds nothing else. A GitHub Actions run sees a file only after it has
+# been committed and pushed, and git history is permanent, so this check runs
+# here, before the commit exists. No other check reads the list.
 #
 # Install once per clone (the hook lives in the repository, git does not run
 # it from there by default):
@@ -21,8 +20,8 @@
 # `\.sql(\.gz)?$`, the form the template uses. That parser cannot
 # read a pattern containing `]` (a character class); it refuses every commit
 # rather than guess, and so does a pattern `grep -E` cannot compile (patterns match case-insensitively in every path: `RegExp` with the `i` flag, `grep -Ei` here). A pattern
-# `grep -E` reads differently from JavaScript is matched by the runner's guard
-# job. Install node, or write the pattern without a character class (list the
+# `grep -E` reads differently from JavaScript may match differently here than
+# with node. Install node, or write the pattern without a character class (list the
 # alternatives, as the template does).
 #
 # POSIX sh only. No dependency beyond git, and node when it is present.
@@ -31,7 +30,7 @@ CONFIG="local-ci.json"
 
 if [ ! -f "$CONFIG" ]; then
     echo "pre-commit: $CONFIG is missing; skipping the guard.deny check (not adopted yet)." >&2
-    echo "pre-commit: add $CONFIG at the repository root when adopting local-ci, or the guard never runs." >&2
+    echo "pre-commit: restore $CONFIG at the repository root, or the guard never runs." >&2
     exit 0
 fi
 
@@ -139,6 +138,5 @@ done
 echo "" >&2
 echo "Unstage it (git restore --staged <file>) and keep it out of the repository." >&2
 echo "If the file belongs in the repository, change guard.deny in $CONFIG first." >&2
-echo "The local CI runner's guard job fails on the same file, so bypassing this hook" >&2
-echo "only moves the failure to the pull request." >&2
+echo "No later check reads guard.deny, so a commit made with --no-verify is not caught." >&2
 exit 1
